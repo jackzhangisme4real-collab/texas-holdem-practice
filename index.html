@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0c100e" />
+  <title>德州扑克练手桌 · PRACTICE TABLE</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/theme-q.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1 id="brand-title">Hold'em Practice</h1>
+        <span id="brand-sub">单机练手 · 练习筹码 · 非真钱娱乐</span>
+      </div>
+      <div class="meta">
+        <span class="pill">HAND <b id="hand-num">1</b></span>
+        <span class="pill street-now">街道 <b id="street-label">翻前</b> · <b id="street-en">Preflop</b></span>
+        <span>盲注 <b id="blind-label">5 / 10</b></span>
+        <span class="pill table-pill">牌桌 <b id="table-label">入门桌</b></span>
+        <span class="pill bankroll-pill" title="本机练习筹码（离线保存）">筹码 <b id="bankroll-label">1000</b></span>
+        <span>难度 <b id="diff-label">标准</b></span>
+        <span>会话胜率 <b id="session-wr">—</b></span>
+      </div>
+      <div class="toolbar">
+        <span class="theme-toggle-wrap" title="视觉主题">
+          <button type="button" id="btn-theme-pro" class="ghost">专业</button>
+          <button type="button" id="btn-theme-q" class="ghost">Q萌</button>
+        </span>
+        <button type="button" id="btn-mute" class="ghost" title="音效开关">🔊 音效</button>
+        <button type="button" id="btn-tables" class="ghost">选桌</button>
+        <button type="button" id="btn-settings" class="ghost">设置</button>
+        <button type="button" id="btn-restart" class="danger">重开</button>
+      </div>
+    </header>
+
+    <div class="layout layout-3">
+      <aside class="side side-left">
+        <div class="panel panel-compact">
+          <h2>状态</h2>
+          <div class="status-line" id="status-line">准备中</div>
+          <div id="showdown-box" hidden></div>
+          <div class="mini-tools">
+            <button type="button" id="btn-help" class="ghost">教学</button>
+            <button type="button" id="btn-ranks" class="ghost">牌力</button>
+            <button type="button" id="btn-range-chart" class="ghost">范围</button>
+            <button type="button" id="btn-stats" class="ghost">统计</button>
+          </div>
+        </div>
+        <div class="panel panel-compact">
+          <h2>本手行动</h2>
+          <div class="action-log" id="action-log"><div class="action-log-row"><span class="det">等待开局…</span></div></div>
+        </div>
+        <div class="panel panel-compact">
+          <h2>起手</h2>
+          <div class="range-box" id="range-box">
+            <div class="range-key muted" id="range-key">—</div>
+            <div class="range-label" id="range-label">等待发牌</div>
+            <div class="range-tip" id="range-tip">翻前档位参考</div>
+          </div>
+        </div>
+        <div class="panel panel-compact">
+          <h2>统计</h2>
+          <div class="stats-grid" id="stats-grid">
+            <div class="stat"><b id="stat-hands">0</b><span>手</span></div>
+            <div class="stat"><b id="stat-won">0</b><span>赢</span></div>
+            <div class="stat"><b id="stat-fold">0</b><span>弃</span></div>
+            <div class="stat"><b id="stat-profit">0</b><span>盈亏</span></div>
+          </div>
+          <div class="chip-legend" id="chip-legend" title="筹码面额" hidden></div>
+        </div>
+      </aside>
+
+      <section class="table-wrap">
+        <div class="street-progress" id="street-progress" aria-label="本手街道进度">
+          <div class="street-step" data-s="preflop"><span class="zh">翻前</span><span class="en">Preflop</span></div>
+          <div class="street-pipe"></div>
+          <div class="street-step" data-s="flop"><span class="zh">翻牌</span><span class="en">Flop</span></div>
+          <div class="street-pipe"></div>
+          <div class="street-step" data-s="turn"><span class="zh">转牌</span><span class="en">Turn</span></div>
+          <div class="street-pipe"></div>
+          <div class="street-step" data-s="river"><span class="zh">河牌</span><span class="en">River</span></div>
+          <div class="street-pipe"></div>
+          <div class="street-step" data-s="showdown"><span class="zh">摊牌</span><span class="en">Showdown</span></div>
+        </div>
+
+        <div class="table-stage" id="table-stage">
+          <div class="seats seats-outside" id="seats"></div>
+          <div class="rail-ring" id="rail-ring">
+            <div class="felt" id="felt">
+              <div class="felt-vignette"></div>
+              <div class="dealer-station" id="dealer-station" aria-label="荷官"></div>
+              <div class="felt-logo">
+                <div class="logo-mark">PRACTICE</div>
+                <div class="logo-sub">TEXAS HOLD'EM</div>
+              </div>
+              <div class="bet-zones" id="bet-zones" aria-label="各座位下注区"></div>
+              <div class="board-area" id="board-area">
+                <div class="board-label">公共牌 · COMMUNITY <span id="board-street-tag">翻前</span></div>
+                <div class="board" id="board" aria-label="公共牌"></div>
+              </div>
+              <div class="pot-display" id="pot-display">
+                <div class="pot-pile-wrap" id="pot-pile-wrap"></div>
+                <div class="pot-chip"><span class="chip-ico" aria-hidden="true"></span>POT <span id="pot-amount">0</span></div>
+                <div class="street-tag" id="street-tag">PREFLOP</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="side side-right">
+        <div class="panel tip-panel">
+          <h2 id="tip-title">提示</h2>
+          <div class="tip-body" id="tip-body">开局后这里会穿插简短教学。</div>
+        </div>
+
+        <div class="panel action-bar" id="action-bar">
+          <h2>操作</h2>
+          <div class="size-row" id="size-row">
+            <button type="button" class="size-chip" data-size="0.5">1/2</button>
+            <button type="button" class="size-chip" data-size="0.75">3/4</button>
+            <button type="button" class="size-chip" data-size="1">POT</button>
+            <button type="button" class="size-chip" data-size="2">2×</button>
+            <button type="button" class="size-chip" data-size="allin">ALL-IN</button>
+          </div>
+          <div class="bet-controls" id="bet-wrap">
+            <div class="bet-line">
+              <label for="bet-range">加注至</label>
+              <input type="range" id="bet-range" min="10" max="1000" value="20" />
+            </div>
+            <div class="bet-line">
+              <span>金额</span>
+              <input type="number" id="bet-input" min="0" step="1" value="20" />
+              <span id="bet-hint" style="color:#9a958a;font-size:0.7rem;"></span>
+            </div>
+          </div>
+          <div class="action-main">
+            <button type="button" id="btn-fold" class="danger">FOLD 弃牌</button>
+            <button type="button" id="btn-check">CHECK 过牌</button>
+            <button type="button" id="btn-call" class="primary">CALL 跟注</button>
+            <button type="button" id="btn-bet" class="ok">BET 下注</button>
+            <button type="button" id="btn-allin" class="gold">ALL-IN 全下</button>
+          </div>
+          <button type="button" id="btn-next-hand" class="primary" hidden>NEXT HAND 下一手</button>
+        </div>
+      </aside>
+    </div>
+
+    <p class="footer-note">GREEN ENTERTAINMENT · NLHE PRACTICE · OFFLINE · NO REAL MONEY</p>
+  </div>
+
+  <div id="chip-fly-layer" aria-hidden="true"></div>
+
+  <div class="modal" id="modal-guided" aria-hidden="true">
+    <div class="modal-card">
+      <div class="guided-progress" id="guided-progress">1 / 4</div>
+      <h3 id="guided-title">引导</h3>
+      <p id="guided-body" class="tip-body"></p>
+      <div class="modal-actions">
+        <button type="button" id="btn-guided-skip" class="ghost">跳过</button>
+        <button type="button" id="btn-guided-next" class="primary">下一条</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-ranks" aria-hidden="true">
+    <div class="modal-card">
+      <h3>牌力大小</h3>
+      <div id="ranks-list"></div>
+      <div class="modal-actions">
+        <button type="button" class="primary" data-close="modal-ranks">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-range" aria-hidden="true">
+    <div class="modal-card">
+      <h3>翻前起手范围（新手参考）</h3>
+      <p class="tip-body" style="color:#9a958a;font-size:0.8rem;margin-top:0;">6 人桌粗分档，非求解器结论。位置越靠后可越宽。</p>
+      <div id="range-chart-list"></div>
+      <div class="modal-actions">
+        <button type="button" class="primary" data-close="modal-range">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-stats" aria-hidden="true">
+    <div class="modal-card">
+      <h3>会话账本</h3>
+      <div id="ledger-list" style="font-size:0.8rem;max-height:40vh;overflow:auto;"></div>
+      <div class="modal-actions">
+        <button type="button" id="btn-reset-stats" class="ghost">清空统计</button>
+        <button type="button" class="primary" data-close="modal-stats">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-settings" aria-hidden="true">
+    <div class="modal-card">
+      <h3>桌面设置</h3>
+      <div class="field">
+        <label for="set-chips">补充 / 重置筹码（练习筹码）</label>
+        <input id="set-chips" type="number" min="200" max="50000" step="100" />
+        <p class="field-hint">日常进度请用顶栏「选桌」；此处保存会按设定值重开本桌。</p>
+      </div>
+      <div class="field">
+        <label for="set-sb">小盲</label>
+        <input id="set-sb" type="number" min="1" max="500" />
+      </div>
+      <div class="field">
+        <label for="set-bb">大盲</label>
+        <input id="set-bb" type="number" min="2" max="1000" />
+      </div>
+      <div class="field">
+        <label for="set-diff">AI 难度</label>
+        <select id="set-diff">
+          <option value="easy">轻松</option>
+          <option value="normal">标准</option>
+          <option value="hard">较难</option>
+        </select>
+      </div>
+      <div class="toggle-row">
+        <span>音效</span>
+        <label><input type="checkbox" id="set-sfx" checked /> 开启</label>
+      </div>
+      <div class="toggle-row">
+        <span>起手牌提示</span>
+        <label><input type="checkbox" id="set-range" checked /> 显示</label>
+      </div>
+      <p class="tip-body" style="color:#9a958a;font-size:0.78rem;">保存后会重新开桌。统计可单独保留或在统计窗清空。</p>
+      <div class="modal-actions">
+        <button type="button" class="ghost" data-close="modal-settings">取消</button>
+        <button type="button" id="btn-save-settings" class="primary">保存并开桌</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="modal" id="modal-tables" aria-hidden="true">
+    <div class="modal-card modal-wide">
+      <h3>选择练习桌</h3>
+      <p class="tip-body share-note">离线单机 · 练习筹码 · 进度保存在本机浏览器。朋友各自打开同一份页面，各自练、互不影响。</p>
+      <div class="bankroll-banner">当前本机筹码：<b id="table-modal-stack">1000</b></div>
+      <div class="table-grid" id="table-grid"></div>
+      <div class="modal-actions">
+        <button type="button" class="ghost" data-close="modal-tables">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-broke" aria-hidden="true">
+    <div class="modal-card">
+      <h3>筹码归零</h3>
+      <p class="tip-body">练习筹码已打光，不能继续坐这桌。请选择重开或补充筹码（非真钱）。</p>
+      <div class="modal-actions broke-actions">
+        <button type="button" id="btn-broke-restart" class="primary">重开入门桌（1000）</button>
+        <button type="button" id="btn-broke-rebuy" class="ghost">补充 1000 练习筹码</button>
+        <button type="button" id="btn-broke-tables" class="ghost">去选桌</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/cards.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/tips.js"></script>
+  <script src="js/sfx.js"></script>
+  <script src="js/chips.js"></script>
+  <script src="js/lineage.js"></script>
+  <script src="js/banter.js"></script>
+  <script src="js/avatars.js"></script>
+  <script src="js/ranges.js"></script>
+  <script src="js/persist.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

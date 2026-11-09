@@ -1,0 +1,1070 @@
+/* Q萌 theme — landscape long table (很长竖短) + 立体角色动画 */
+
+body.theme-q {
+  --bg0: #fff5f8;
+  --bg1: #ffe8f0;
+  --felt: #7dcea0;
+  --felt-mid: #82e0aa;
+  --felt-hi: #abebc6;
+  --felt-edge: #1e8449;
+  --rail: #f5b7b1;
+  --rail-hi: #fadbd8;
+  --rail-edge: #f1948a;
+  --gold: #e67e22;
+  --gold-bright: #f39c12;
+  --gold-dim: #d68910;
+  --text: #4a3728;
+  --muted: #a08070;
+  --danger: #e74c3c;
+  --ok: #27ae60;
+  --accent: #e84393;
+  --panel: rgba(255, 255, 255, 0.92);
+  --panel-border: rgba(232, 67, 147, 0.28);
+  --shadow: 0 12px 32px rgba(232, 128, 160, 0.25);
+  background:
+    radial-gradient(ellipse at top, #ffe0ec 0%, transparent 50%),
+    linear-gradient(180deg, #fff8fb, #ffeaf2 60%, #fff5f8);
+  color: var(--text);
+}
+
+body.theme-q .app {
+  max-width: 1280px;
+}
+
+body.theme-q .topbar {
+  background: linear-gradient(180deg, #fff, #ffe8f1);
+  border-radius: 16px;
+  border-color: #ffb6c8;
+}
+body.theme-q .topbar::before {
+  background: linear-gradient(90deg, transparent, #ff8fab, #ffeaa7, #74b9ff, transparent);
+}
+body.theme-q .brand h1 {
+  color: #e84393;
+  letter-spacing: 0.06em;
+  text-transform: none;
+  font-size: 1.2rem;
+}
+body.theme-q .brand span { color: #c07090; }
+body.theme-q .meta b { color: #e67e22; }
+body.theme-q .meta .pill {
+  background: #fff0f5;
+  border-color: #ffb6c8;
+  border-radius: 999px;
+}
+body.theme-q button {
+  border-radius: 999px;
+  border-color: #ffb6c8;
+  background: linear-gradient(180deg, #fff, #ffe8f1);
+  color: #6d4c41;
+}
+body.theme-q button.primary {
+  background: linear-gradient(180deg, #74b9ff, #0984e3);
+  border-color: #81ecec;
+  color: #fff;
+}
+body.theme-q button.danger {
+  background: linear-gradient(180deg, #ff7675, #d63031);
+  border-color: #fab1a0;
+}
+body.theme-q button.ok {
+  background: linear-gradient(180deg, #55efc4, #00b894);
+  border-color: #81ecec;
+  color: #064e3b;
+}
+body.theme-q button.gold {
+  background: linear-gradient(180deg, #ffeaa7, #fdcb6e);
+  border-color: #e17055;
+  color: #6d4c41;
+}
+body.theme-q button.size-chip {
+  background: #fff;
+  border-color: #ffb6c8;
+  color: #e84393;
+  border-radius: 999px;
+}
+
+body.theme-q .panel {
+  background: var(--panel);
+  border-radius: 16px;
+  border-color: var(--panel-border);
+  box-shadow: var(--shadow);
+}
+body.theme-q .panel::before {
+  background: linear-gradient(180deg, transparent, #ff8fab, transparent);
+}
+body.theme-q .panel h2 {
+  color: #e84393;
+  letter-spacing: 0.08em;
+}
+body.theme-q .tip-body,
+body.theme-q .status-line { color: #6d4c41; }
+
+/* Layout: wide table on top for landscape feel */
+/* layout handled by .layout-3 below */
+
+/* —— 很长竖短：横向长桌 —— */
+body.theme-q .table-wrap {
+  background: linear-gradient(160deg, #ffe0ec, #fff5f8 40%, #e8f6ff);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+  padding: 12px 14px 16px;
+}
+body.theme-q .table-wrap::after {
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(255, 180, 200, 0.12) 100%);
+}
+body.theme-q .rail-ring {
+  border-radius: 18px;
+  padding: 12px 14px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.45), transparent 40%),
+    linear-gradient(145deg, #fde2e4, #f5b7b1 40%, #e89a96);
+  box-shadow:
+    inset 0 0 0 2px rgba(255,255,255,0.55),
+    inset 0 0 0 5px #f1948a,
+    0 10px 22px rgba(0, 0, 0, 0.12);
+}
+body.theme-q .felt {
+  /* landscape: wide & short */
+  border-radius: 14px;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 2.55 / 1;
+  max-height: min(42vh, 360px);
+  min-height: 260px;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 40%, rgba(255, 255, 255, 0.28) 0%, transparent 55%),
+    linear-gradient(180deg, #b8e6c8 0%, #7dcea0 42%, #52be80 100%);
+  border: 3px solid #1e8449;
+  box-shadow:
+    inset 0 8px 24px rgba(255,255,255,0.22),
+    inset 0 -10px 28px rgba(0, 60, 30, 0.22),
+    0 8px 0 #145a32;
+  overflow: visible;
+}
+body.theme-q .felt-vignette {
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(30, 100, 60, 0.16) 100%);
+  border-radius: inherit;
+}
+body.theme-q .felt-logo {
+  top: 50%;
+  opacity: 0.12;
+}
+body.theme-q .felt-logo .logo-mark { color: #fff; letter-spacing: 0.35em; font-size: 0.65rem; }
+body.theme-q .felt-logo .logo-sub { color: #fff8; }
+
+body.theme-q .board {
+  top: 44%;
+  gap: 6px;
+  transform: translate(-50%, -50%) scale(0.92);
+}
+body.theme-q .pot-display { top: 68%; }
+body.theme-q .pot-chip {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: #ff8fab;
+  color: #e67e22;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  padding: 4px 12px;
+}
+body.theme-q .street-tag { color: rgba(255, 255, 255, 0.8); font-size: 0.6rem; }
+
+/* Dealer on left short end */
+body.theme-q .dealer-station {
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translate(-42%, -50%);
+  z-index: 7;
+  width: 88px;
+  text-align: center;
+  pointer-events: none;
+  filter: drop-shadow(0 10px 8px rgba(0,0,0,0.18));
+}
+body.theme-q .dealer-station .dealer-svg {
+  width: 84px;
+  height: auto;
+  transform-origin: 50% 80%;
+  animation: dealer-idle 3.2s ease-in-out infinite;
+}
+body.theme-q .dealer-station .dealer-arm {
+  transform-origin: 70px 110px;
+}
+body.theme-q .dealer-station.dealing .dealer-svg {
+  animation: dealer-bob-deal 0.55s ease-in-out infinite;
+}
+body.theme-q .dealer-station.dealing .dealer-arm {
+  animation: dealer-arm-swing 0.45s ease-in-out infinite;
+}
+@keyframes dealer-idle {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(-1.5deg); }
+}
+@keyframes dealer-bob-deal {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-5px) rotate(3deg); }
+}
+@keyframes dealer-arm-swing {
+  0%, 100% { transform: rotate(-18deg); }
+  50% { transform: rotate(28deg); }
+}
+
+
+/* Seats along long edges */
+body.theme-q .seat {
+  width: 132px;
+  z-index: 5;
+}
+body.theme-q .seat::before {
+  /* floor shadow / depth under seat */
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  width: 78px;
+  height: 16px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.28), transparent 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+body.theme-q .avatar-wrap {
+  position: relative;
+  z-index: 2;
+  width: 100px;
+  height: 108px;
+  border-radius: 16px;
+  overflow: visible;
+  background:
+    linear-gradient(165deg, #ffffff 0%, #ffe6f0 55%, #ffd0e4 100%);
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px #ff8fab,
+    inset 0 6px 10px rgba(255,255,255,0.65),
+    inset 0 -8px 12px rgba(232, 67, 147, 0.12),
+    0 10px 16px rgba(232, 67, 147, 0.22);
+  margin-bottom: 0;
+  transform-style: preserve-3d;
+  animation: chibi-bob 2.8s ease-in-out infinite;
+}
+body.theme-q .seat:nth-child(2n) .avatar-wrap { animation-delay: 0.4s; }
+body.theme-q .seat:nth-child(3n) .avatar-wrap { animation-delay: 0.9s; }
+body.theme-q .seat.human .avatar-wrap {
+  width: 112px;
+  height: 118px;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 5px #fdcb6e,
+    inset 0 6px 10px rgba(255,255,255,0.7),
+    0 12px 18px rgba(253, 203, 110, 0.4);
+}
+body.theme-q .chibi-svg,
+body.theme-q .dealer-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+/* Idle bob + blink */
+@keyframes chibi-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+body.theme-q .chibi-svg .eye-open {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: chibi-blink 3.6s ease-in-out infinite;
+}
+body.theme-q .seat:nth-child(2n) .chibi-svg .eye-open { animation-delay: 0.7s; }
+body.theme-q .seat:nth-child(3n) .chibi-svg .eye-open { animation-delay: 1.4s; }
+@keyframes chibi-blink {
+  0%, 42%, 48%, 100% { transform: scaleY(1); }
+  45% { transform: scaleY(0.12); }
+}
+
+/* Micro states */
+body.theme-q .seat.receiving .avatar-wrap {
+  animation: chibi-receive 0.35s ease;
+}
+@keyframes chibi-receive {
+  0% { transform: translateY(0) scale(1); }
+  40% { transform: translateY(-8px) scale(1.06) rotate(-2deg); }
+  100% { transform: translateY(0) scale(1); }
+}
+body.theme-q .seat.is-folded .avatar-wrap {
+  animation: chibi-fold 0.55s ease forwards;
+  filter: grayscale(0.55) brightness(0.9);
+}
+@keyframes chibi-fold {
+  0% { transform: translateY(0) rotate(0); }
+  40% { transform: translateY(2px) rotate(-6deg); }
+  100% { transform: translateY(6px) rotate(-3deg) scale(0.94); }
+}
+body.theme-q .seat.is-winner .avatar-wrap {
+  animation: chibi-cheer 0.7s ease infinite;
+}
+@keyframes chibi-cheer {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  25% { transform: translateY(-10px) rotate(-4deg) scale(1.05); }
+  50% { transform: translateY(-2px) rotate(3deg); }
+  75% { transform: translateY(-8px) rotate(-2deg) scale(1.04); }
+}
+body.theme-q .seat.actor .avatar-wrap {
+  animation: chibi-think 1.2s ease-in-out infinite;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 5px #74b9ff,
+    0 0 16px rgba(116, 185, 255, 0.55),
+    0 10px 16px rgba(0,0,0,0.12);
+}
+@keyframes chibi-think {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+body.theme-q .seat-info {
+  background: rgba(255, 255, 255, 0.94);
+  border: 2px solid #ffb6c8;
+  border-radius: 12px;
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+body.theme-q .seat.actor .seat-info {
+  border-color: #74b9ff;
+  box-shadow: 0 0 0 3px rgba(116, 185, 255, 0.3);
+}
+body.theme-q .seat.human .seat-name { color: #e67e22; }
+body.theme-q .stack-label .stack-amt { color: #6d4c41; }
+body.theme-q .seat.human .stack-label .stack-amt { color: #e67e22; }
+body.theme-q .street-bet-zone { min-height: 36px; }
+body.theme-q .street-bet-amt {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: #fd79a8;
+  color: #e84393;
+  font-size: 0.66rem;
+}
+body.theme-q .lineage-badge.open { background: linear-gradient(180deg, #fdcb6e, #e17055); }
+body.theme-q .lineage-badge.call { background: #00b894; color: #fff; }
+body.theme-q .bet-count-tag {
+  background: #fff0f5;
+  border-color: #ffb6c8;
+  color: #a05070;
+  border-radius: 999px;
+}
+body.theme-q .exit-tag {
+  background: rgba(99, 110, 114, 0.85);
+  border-color: #b2bec3;
+  color: #fff;
+  border-radius: 999px;
+  top: 0;
+}
+body.theme-q .seat.is-folded,
+body.theme-q .seat.is-out {
+  opacity: 0.5;
+  filter: grayscale(0.55) brightness(0.92);
+}
+body.theme-q .banter-bubble {
+  background: #fff;
+  border-color: #74b9ff;
+  color: #4a3728;
+  border-radius: 14px 14px 14px 4px;
+}
+body.theme-q .badge.dealer {
+  background: linear-gradient(180deg, #ffeaa7, #fdcb6e);
+}
+
+body.theme-q .card {
+  border-radius: 7px;
+  border-color: #f5c6d0;
+  --cw: 40px;
+  --ch: 56px;
+}
+body.theme-q .card.board-card { --cw: 46px; --ch: 64px; }
+body.theme-q .card.back {
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), transparent 42%),
+    linear-gradient(160deg, #fd79a8, #e84393);
+  border-color: #fff;
+  box-shadow: 0 4px 10px rgba(232, 67, 147, 0.3), inset 0 0 0 2px rgba(255,255,255,0.4);
+}
+body.theme-q .card.back::after { content: "♡"; color: rgba(255,255,255,0.9); }
+
+body.theme-q .modal-card {
+  background: linear-gradient(180deg, #fff, #ffe8f1);
+  border-color: #ffb6c8;
+  border-radius: 18px;
+  color: var(--text);
+}
+body.theme-q .modal-card h3 { color: #e84393; }
+body.theme-q .footer-note { color: #c07090; }
+
+.deal-fly {
+  position: fixed;
+  width: 36px;
+  height: 52px;
+  border-radius: 5px;
+  z-index: 90;
+  pointer-events: none;
+  background: linear-gradient(160deg, #1b4332, #081c15);
+  border: 2px solid #c9a227;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+  transition: transform 0.95s cubic-bezier(0.2, 0.7, 0.15, 1), opacity 0.4s ease 0.5s;
+  opacity: 1;
+}
+body.theme-pro .deal-fly {
+  background: linear-gradient(160deg, #1a2744, #0c1528);
+  border-color: #d4af37;
+}
+
+.theme-toggle-wrap {
+  display: inline-flex;
+  gap: 4px;
+  padding: 2px;
+  background: rgba(0,0,0,0.06);
+  border-radius: 999px;
+}
+body.theme-q .theme-toggle-wrap { background: #ffe0ec; }
+.theme-toggle-wrap button.active {
+  background: linear-gradient(180deg, #ffeaa7, #fdcb6e) !important;
+  border-color: #e17055 !important;
+  color: #4a3728 !important;
+  font-weight: 800;
+}
+body.theme-pro .theme-toggle-wrap button.active {
+  background: linear-gradient(180deg, #c9a227, #8a6b12) !important;
+  color: #1a1200 !important;
+}
+
+@media (max-width: 900px) {
+  body.theme-q .felt {
+    aspect-ratio: 1.9 / 1;
+    max-height: min(48vh, 340px);
+  }
+  body.theme-q .seat { width: 112px; }
+  body.theme-q .avatar-wrap { width: 84px; height: 92px; }
+  body.theme-q .seat.human .avatar-wrap { width: 92px; height: 100px; }
+  body.theme-q .dealer-station { width: 70px; transform: translate(-35%, -50%); }
+  body.theme-q .dealer-station .dealer-svg { width: 68px; }
+}
+
+/* ===== Layout fix: people OUTSIDE table, spaced seats, bet partitions ===== */
+body.theme-q .table-stage {
+  position: relative;
+  width: 100%;
+  min-height: 420px;
+  padding: 8px 8px 12px;
+}
+body.theme-q .table-stage .rail-ring {
+  position: relative;
+  z-index: 2;
+  margin: 118px 56px 118px 72px; /* room for outside seats top/bottom + dealer left */
+}
+body.theme-q .felt {
+  aspect-ratio: 3.1 / 1;
+  max-height: min(34vh, 300px);
+  min-height: 220px;
+  position: relative;
+}
+body.theme-q .seats.seats-outside {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+body.theme-q .seats.seats-outside .seat {
+  pointer-events: auto;
+  width: 148px;
+}
+/* Keep characters clear of felt */
+body.theme-q .seat .street-bet-zone {
+  display: none; /* bets live in on-felt partitions */
+}
+
+/* On-felt bet partitions */
+body.theme-q .bet-zones {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+body.theme-q .bet-zone {
+  position: absolute;
+  width: 118px;
+  height: 58px;
+  transform: translate(-50%, -50%);
+  border: 2px dashed rgba(255, 255, 255, 0.65);
+  border-radius: 10px;
+  background: rgba(0, 40, 20, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px;
+}
+body.theme-q .bet-zone .bz-name {
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+}
+body.theme-q .bet-zone .bz-amt {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #ffeaa7;
+  background: rgba(0,0,0,0.35);
+  border-radius: 999px;
+  padding: 1px 7px;
+}
+body.theme-q .bet-zone.empty .bz-amt { opacity: 0.45; }
+body.theme-q .bet-zone.active {
+  border-color: #74b9ff;
+  background: rgba(116, 185, 255, 0.18);
+  box-shadow: 0 0 0 2px rgba(116,185,255,0.25), inset 0 0 0 1px rgba(255,255,255,0.25);
+}
+
+/* Clear community board frame */
+body.theme-q .board-area {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px 10px;
+  background: rgba(0, 50, 30, 0.28);
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 3px rgba(30, 132, 73, 0.35),
+    inset 0 0 12px rgba(255,255,255,0.12);
+  min-width: 280px;
+}
+body.theme-q .board-label {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+}
+body.theme-q .board {
+  position: static;
+  left: auto;
+  top: auto;
+  transform: none;
+  display: flex;
+  gap: 6px;
+}
+body.theme-q .pot-display {
+  top: 78%;
+}
+
+body.theme-q .dealer-station {
+  left: -8px;
+  transform: translate(-55%, -50%);
+  z-index: 5;
+}
+
+/* Pro theme: seats stay inside felt as before */
+body.theme-pro .table-stage {
+  position: relative;
+}
+body.theme-pro .table-stage .rail-ring {
+  margin: 0;
+}
+body.theme-pro .bet-zones {
+  display: none !important;
+}
+/* board-label / board-area for pro are defined in style.css COMMUNITY tray */
+body.theme-pro .seats {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+}
+body.theme-pro .seat .street-bet-zone {
+  display: flex;
+}
+
+@media (max-width: 900px) {
+  body.theme-q .table-stage .rail-ring {
+    margin: 100px 36px 100px 52px;
+  }
+  body.theme-q .seats.seats-outside .seat { width: 120px; }
+  body.theme-q .bet-zone { width: 92px; height: 50px; }
+  body.theme-q .board-area { min-width: 220px; padding: 6px 8px; }
+}
+
+body.theme-q .layout-3 {
+  grid-template-columns: 240px minmax(0, 1fr) 270px;
+}
+body.theme-q .street-progress {
+  background: rgba(255,255,255,0.75);
+  border-color: #ffb6c8;
+}
+body.theme-q .street-step {
+  background: #fff5f8;
+  color: #6d4c41;
+}
+body.theme-q .street-step .en { color: #c07090; }
+body.theme-q .street-step.active {
+  background: #ffe0ec;
+  border-color: #e84393;
+  box-shadow: 0 0 0 2px rgba(232,67,147,0.2);
+}
+body.theme-q .street-step.active .zh { color: #e84393; }
+body.theme-q .street-pipe { background: #ffb6c8; }
+body.theme-q .layout.layout-3 {
+  /* override earlier single-column q layout */
+  grid-template-columns: 240px minmax(0, 1fr) 270px;
+}
+@media (max-width: 1100px) {
+  body.theme-q .layout.layout-3,
+  body.theme-q .layout-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ===== Screenshot fix: further outside, separators, dealer opposite YOU ===== */
+body.theme-q .table-stage {
+  min-height: 460px;
+  padding: 4px 4px 8px;
+}
+body.theme-q .table-stage .rail-ring {
+  /* more room top/bottom for seats outside; symmetric sides */
+  margin: 132px 64px 138px 64px;
+}
+body.theme-q .felt {
+  /* lane separators between seat sectors */
+  background:
+    linear-gradient(90deg, transparent 0 31%, rgba(255,255,255,0.22) 31%, rgba(255,255,255,0.22) calc(31% + 2px), transparent calc(31% + 2px) 69%, rgba(255,255,255,0.22) 69%, rgba(255,255,255,0.22) calc(69% + 2px), transparent calc(69% + 2px)),
+    radial-gradient(ellipse 90% 70% at 50% 40%, rgba(255, 255, 255, 0.28) 0%, transparent 55%),
+    linear-gradient(180deg, #b8e6c8 0%, #7dcea0 42%, #52be80 100%);
+}
+body.theme-q .seats.seats-outside .seat {
+  width: 136px;
+}
+body.theme-q .seat.side-bottom { z-index: 6; }
+body.theme-q .seat.side-top { z-index: 6; }
+body.theme-q .seat.side-left,
+body.theme-q .seat.side-right { z-index: 5; }
+
+/* Dealer opposite human (top center, outside table) */
+body.theme-q .dealer-station.dealer-opposite,
+body.theme-q .dealer-station {
+  left: 50% !important;
+  top: 0 !important;
+  right: auto;
+  bottom: auto;
+  transform: translate(-50%, -108%) !important;
+  width: 92px;
+  z-index: 7;
+}
+body.theme-q .dealer-station .dealer-svg {
+  width: 88px;
+}
+
+/* Clearer bet-zone separators */
+body.theme-q .bet-zone {
+  width: 108px;
+  height: 62px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  background: rgba(0, 35, 18, 0.28);
+  box-shadow:
+    0 0 0 2px rgba(30, 100, 50, 0.45),
+    inset 0 0 0 1px rgba(255,255,255,0.15);
+}
+body.theme-q .bet-zone::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border: 1px dashed rgba(255,255,255,0.35);
+  border-radius: 10px;
+  pointer-events: none;
+}
+body.theme-q .bet-zone .bz-name {
+  font-size: 0.56rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Seat card with clearer partition look */
+body.theme-q .seat-info {
+  border-width: 2px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1), 0 0 0 1px rgba(255,255,255,0.5) inset;
+}
+body.theme-q .avatar-wrap {
+  /* pull visual weight; seat already further via % */
+  margin-bottom: 2px;
+}
+
+@media (max-width: 900px) {
+  body.theme-q .table-stage .rail-ring {
+    margin: 118px 40px 124px 40px;
+  }
+  body.theme-q .dealer-station.dealer-opposite,
+  body.theme-q .dealer-station {
+    transform: translate(-50%, -100%) !important;
+    width: 72px;
+  }
+  body.theme-q .dealer-station .dealer-svg { width: 70px; }
+}
+
+/* D / SB / BB restored — make them loud */
+body.theme-q .badge.dealer,
+body.theme-q .badge.sb,
+body.theme-q .badge.bb {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  font-size: 0.72rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.04em;
+  padding: 0 6px !important;
+  border-radius: 4px !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+}
+body.theme-q .badge.dealer {
+  background: linear-gradient(180deg, #f0d78c, #c9a227) !important;
+  color: #1a1200 !important;
+  border-radius: 50% !important;
+  width: 22px;
+  height: 22px;
+  padding: 0 !important;
+}
+body.theme-q .badge.sb {
+  background: #607d8b !important;
+  color: #fff !important;
+}
+body.theme-q .badge.bb {
+  background: #1565c0 !important;
+  color: #fff !important;
+}
+body.theme-q .pos-markers {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 3px;
+}
+
+/* —— Final polish: unclip top seats, bigger table, slim sides —— */
+body.theme-q {
+  padding-top: 4px;
+}
+body.theme-q .app { max-width: 1500px; }
+body.theme-q .layout-3,
+body.theme-q .layout.layout-3 {
+  grid-template-columns: 160px minmax(0, 1fr) 190px !important;
+  gap: 8px;
+}
+body.theme-q .side-left,
+body.theme-q .side-right {
+  font-size: 0.74rem;
+}
+body.theme-q .panel {
+  padding: 7px 8px;
+}
+body.theme-q .panel h2 { font-size: 0.62rem; }
+
+body.theme-q .table-wrap {
+  overflow: visible !important;
+}
+body.theme-q .table-stage {
+  overflow: visible !important;
+  min-height: 520px;
+  padding: 56px 4px 24px; /* room for dealer + top seats above felt */
+}
+body.theme-q .table-stage .rail-ring {
+  margin: 96px 36px 110px 36px !important; /* less side margin = wider table */
+  z-index: 2;
+  overflow: visible;
+}
+body.theme-q .felt {
+  aspect-ratio: 2.7 / 1 !important;
+  max-height: min(46vh, 380px) !important;
+  min-height: 280px !important;
+  overflow: visible !important;
+}
+body.theme-q .seats.seats-outside {
+  z-index: 20 !important;
+}
+body.theme-q .seat.side-top,
+body.theme-q .seat.side-bottom,
+body.theme-q .seat.side-left {
+  z-index: 21 !important;
+}
+body.theme-q .dealer-station,
+body.theme-q .dealer-station.dealer-opposite {
+  z-index: 22 !important;
+  transform: translate(-50%, -118%) !important;
+}
+body.theme-q .street-progress {
+  margin-bottom: 2px;
+  z-index: 1;
+}
+
+/* Push top seats slightly higher into the padded area */
+body.theme-q .seat.side-top {
+  /* positions still from JS %; ensure not clipped */
+}
+
+body.theme-q .board-area {
+  min-width: 300px;
+  z-index: 5;
+}
+body.theme-q .bet-zones { z-index: 4; }
+
+@media (max-width: 1100px) {
+  body.theme-q .layout-3,
+  body.theme-q .layout.layout-3 {
+    grid-template-columns: 1fr !important;
+  }
+  body.theme-q .table-stage {
+    padding-top: 48px;
+    min-height: 460px;
+  }
+}
+
+/* ===== Night lounge Q萌: no pink, wood + deep green ===== */
+body.theme-q {
+  --bg0: #0c1210 !important;
+  --bg1: #15201a !important;
+  --text: #e8e2d6 !important;
+  --muted: #9aa396 !important;
+  --accent: #c9a227 !important;
+  --gold: #c9a227 !important;
+  --gold-bright: #f0d78c !important;
+  --panel: rgba(18, 24, 20, 0.92) !important;
+  --panel-border: rgba(201, 162, 39, 0.28) !important;
+  background:
+    radial-gradient(ellipse at top, #1a2a22 0%, transparent 50%),
+    linear-gradient(180deg, #101816, #0a100e 60%, #070b09) !important;
+  color: var(--text) !important;
+}
+body.theme-q .topbar {
+  background: linear-gradient(180deg, #1c2420, #121816) !important;
+  border-color: rgba(201,162,39,0.35) !important;
+}
+body.theme-q .topbar::before {
+  background: linear-gradient(90deg, transparent, #c9a227, #2e7d4f, transparent) !important;
+}
+body.theme-q .brand h1 { color: #f0d78c !important; }
+body.theme-q .brand span { color: #8a9588 !important; }
+body.theme-q .meta b { color: #f0d78c !important; }
+body.theme-q .meta .pill {
+  background: rgba(201,162,39,0.1) !important;
+  border-color: rgba(201,162,39,0.3) !important;
+}
+body.theme-q button {
+  background: linear-gradient(180deg, #2a332e, #1a211c) !important;
+  border-color: #3d4a42 !important;
+  color: #e8e2d6 !important;
+}
+body.theme-q button.primary {
+  background: linear-gradient(180deg, #2e6b4f, #1b4d38) !important;
+  border-color: #4caf7a !important;
+  color: #fff !important;
+}
+body.theme-q button.danger {
+  background: linear-gradient(180deg, #a33, #711) !important;
+}
+body.theme-q button.ok {
+  background: linear-gradient(180deg, #2e7d4f, #1b5e3a) !important;
+  color: #e8fff0 !important;
+}
+body.theme-q button.gold {
+  background: linear-gradient(180deg, #d4af37, #8a6b12) !important;
+  color: #1a1200 !important;
+}
+body.theme-q button.size-chip {
+  background: #1a211c !important;
+  border-color: #4a4030 !important;
+  color: #f0d78c !important;
+}
+body.theme-q .panel {
+  background: rgba(16, 22, 18, 0.94) !important;
+  border-color: rgba(201,162,39,0.25) !important;
+}
+body.theme-q .panel::before {
+  background: linear-gradient(180deg, transparent, #c9a227, transparent) !important;
+}
+body.theme-q .panel h2 { color: #c9a227 !important; }
+body.theme-q .tip-body,
+body.theme-q .status-line { color: #d5d0c4 !important; }
+body.theme-q .table-wrap {
+  background: linear-gradient(160deg, #1a1510, #121816 45%, #0e1612) !important;
+}
+body.theme-q .table-wrap::after {
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.35) 100%) !important;
+}
+body.theme-q .rail-ring {
+  background: linear-gradient(145deg, #5a4030, #3a281c 40%, #24180f) !important;
+  box-shadow:
+    inset 0 0 0 2px rgba(201,162,39,0.45),
+    inset 0 0 0 5px #1a120c,
+    0 10px 24px rgba(0,0,0,0.4) !important;
+}
+body.theme-q .street-progress {
+  background: rgba(12,16,14,0.85) !important;
+  border-color: rgba(201,162,39,0.3) !important;
+}
+body.theme-q .street-step {
+  background: rgba(255,255,255,0.04) !important;
+  color: #d5d0c4 !important;
+}
+body.theme-q .street-step .en { color: #8a9588 !important; }
+body.theme-q .street-step.active {
+  background: rgba(201,162,39,0.15) !important;
+  border-color: #c9a227 !important;
+}
+body.theme-q .street-step.active .zh { color: #f0d78c !important; }
+body.theme-q .street-pipe { background: rgba(201,162,39,0.35) !important; }
+body.theme-q .seat-info {
+  background: rgba(12,14,12,0.92) !important;
+  border-color: rgba(201,162,39,0.35) !important;
+  color: #e8e2d6 !important;
+}
+body.theme-q .seat.human .seat-name { color: #f0d78c !important; }
+body.theme-q .stack-label .stack-amt { color: #e8e2d6 !important; }
+body.theme-q .seat.human .stack-label .stack-amt { color: #f0d78c !important; }
+body.theme-q .avatar-wrap {
+  background: linear-gradient(165deg, #2a322c, #151a16) !important;
+  box-shadow:
+    0 0 0 2px #1a120c,
+    0 0 0 4px rgba(201,162,39,0.55),
+    inset 0 6px 10px rgba(255,255,255,0.06),
+    0 10px 16px rgba(0,0,0,0.35) !important;
+}
+body.theme-q .seat.human .avatar-wrap {
+  box-shadow:
+    0 0 0 2px #1a120c,
+    0 0 0 5px #c9a227,
+    0 12px 18px rgba(201,162,39,0.25) !important;
+}
+body.theme-q .bet-count-tag {
+  background: rgba(0,0,0,0.45) !important;
+  border-color: rgba(201,162,39,0.3) !important;
+  color: #cfc6b4 !important;
+}
+body.theme-q .theme-toggle-wrap { background: rgba(0,0,0,0.35) !important; }
+body.theme-q .modal-card {
+  background: linear-gradient(180deg, #1a211c, #0c100e) !important;
+  border-color: rgba(201,162,39,0.35) !important;
+  color: #e8e2d6 !important;
+}
+body.theme-q .modal-card h3 { color: #f0d78c !important; }
+body.theme-q .footer-note { color: #6a756c !important; }
+body.theme-q .card.back {
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.12), transparent 40%),
+    linear-gradient(160deg, #1b4332, #081c15) !important;
+  border-color: #c9a227 !important;
+}
+body.theme-q .card.back::after { content: "♠"; color: rgba(240,215,140,0.55); }
+body.theme-q .banter-bubble {
+  background: #121816 !important;
+  border-color: rgba(201,162,39,0.45) !important;
+  color: #e8e2d6 !important;
+}
+
+
+/* pos-float q */
+body.theme-q .pos-float {
+  right: -8px;
+  top: -8px;
+}
+body.theme-q .pos-float .badge.dealer,
+body.theme-q .pos-float .badge.sb,
+body.theme-q .pos-float .badge.bb {
+  min-width: 28px;
+  height: 28px;
+  font-size: 0.78rem !important;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.55), 0 0 0 2px rgba(201,162,39,0.35);
+}
+body.theme-q .pos-markers .badge.dealer,
+body.theme-q .pos-markers .badge.sb,
+body.theme-q .pos-markers .badge.bb {
+  display: inline-flex !important;
+}
+body.theme-q .dealer-station.dealing .dealer-svg {
+  animation: dealer-bob-deal 0.85s ease-in-out infinite !important;
+}
+body.theme-q .dealer-station.dealing .dealer-arm {
+  animation: dealer-arm-swing 0.75s ease-in-out infinite !important;
+}
+body.theme-q .seat.receiving .avatar-wrap {
+  animation: chibi-receive-slow 0.75s ease !important;
+}
+
+
+/* q stack badge */
+body.theme-q .stack-badge {
+  background: rgba(8,12,10,0.92);
+  border-color: rgba(201,162,39,0.7);
+}
+body.theme-q .stack-badge .sb-amt { color: #f0d78c; }
+body.theme-q .under-cards-bet {
+  /* Q uses on-felt bet-zones; keep a compact reminder under cards */
+  opacity: 0.95;
+}
+body.theme-q .street-bet-zone {
+  display: none; /* bets live in on-felt partitions */
+}
+body.theme-q .seat .street-bet-zone { display: none; }
+
+body.theme-pro .under-cards-bet { display: none; }
+body.theme-q .under-cards-bet { display: flex; }
+
+
+/* q board night lounge */
+body.theme-q .board-area {
+  background: rgba(0,0,0,0.42) !important;
+  border: 1px solid rgba(201,162,39,0.5) !important;
+  box-shadow:
+    0 8px 22px rgba(0,0,0,0.45),
+    inset 0 0 0 1px rgba(255,255,255,0.06) !important;
+}
+body.theme-q .board-label {
+  color: #f0d78c !important;
+  letter-spacing: 0.14em;
+}
+body.theme-q .avatar-wrap {
+  overflow: visible !important;
+  padding-bottom: 10px;
+}
+body.theme-q .pos-float { z-index: 10; }
+
+
+/* q depth */
+body.theme-q .table-stage { perspective: 1100px; }
+body.theme-q .rail-ring {
+  transform: rotateX(6deg);
+  transform-style: preserve-3d;
+}
+body.theme-q .avatar-wrap {
+  transform-style: preserve-3d;
+  filter: drop-shadow(0 10px 14px rgba(0,0,0,0.4));
+}
+body.theme-q .deal-fly {
+  background: linear-gradient(160deg, #1b4332, #081c15) !important;
+  border-color: #c9a227 !important;
+}
+body.theme-q .seat.peeking .avatar-wrap {
+  animation: chibi-receive-slow 0.6s ease;
+}
