@@ -1295,6 +1295,8 @@
     const t = state.table;
     if (!t) {
       cardsEl.innerHTML = '';
+      cardsEl.classList.remove('folded-review');
+      dock.classList.remove('is-folded-review');
       if (metaEl) metaEl.textContent = '';
       return;
     }
@@ -1302,18 +1304,16 @@
     const human = t.players[hi];
     if (!human || !human.hole || human.hole.length < 2) {
       cardsEl.innerHTML = '<div class="card slot board-card"></div><div class="card slot board-card"></div>';
+      cardsEl.classList.remove('folded-review');
+      dock.classList.remove('is-folded-review');
       if (metaEl) metaEl.textContent = '等待发牌';
-      return;
-    }
-    if (human.folded) {
-      cardsEl.innerHTML = '<div class="folded-tag">FOLD</div>';
-      if (metaEl) metaEl.textContent = '本手已弃';
       return;
     }
     const peeked = !!state.holePeeked[human.id];
     const showdownFace =
       t.handOver && t.showdownResults && !t.showdownResults.foldWin && !human.folded;
-    const show = peeked || showdownFace;
+    // After fold, keep hole cards face-up (dimmed via CSS) for post-hand review
+    const show = human.folded || peeked || showdownFace;
     const landed = state.dealReveal[human.id] || 0;
     const revealed = state.dealing ? landed : (landed || human.hole.length);
     let html = '';
@@ -1325,9 +1325,16 @@
     }
     if (!html) html = '<div class="card slot board-card"></div><div class="card slot board-card"></div>';
     cardsEl.innerHTML = html;
+    cardsEl.classList.toggle('folded-review', !!human.folded);
+    dock.classList.toggle('is-folded-review', !!human.folded);
     if (metaEl) {
-      const key = Ranges.holeKey ? Ranges.holeKey(human.hole) : '';
-      metaEl.textContent = (show ? (key || '手牌') : '背面') + ' · STACK ' + human.chips;
+      if (human.folded) {
+        const key = Ranges.holeKey ? Ranges.holeKey(human.hole) : '';
+        metaEl.textContent = '已弃 · 复盘' + (key ? (' · ' + key) : '') + ' · STACK ' + human.chips;
+      } else {
+        const key = Ranges.holeKey ? Ranges.holeKey(human.hole) : '';
+        metaEl.textContent = (show ? (key || '手牌') : '背面') + ' · STACK ' + human.chips;
+      }
     }
   }
 
@@ -1430,28 +1437,37 @@
       let cardsHtml = '';
       const landed = state.dealReveal[p.id] || 0;
       const revealed = state.dealing ? landed : (landed || (p.hole ? p.hole.length : 0));
-      if (p.folded) {
+      if (p.folded && !(p.isHuman && p.hole && p.hole.length)) {
+        // Opponents: keep FOLD tag after muck
         cardsHtml = '<div class="folded-tag">FOLD</div>';
       } else if (p.hole && p.hole.length) {
         if (revealed <= 0) {
           cardsHtml = '';
         } else {
+          // Hero after fold: keep face-up cards for review (dimmed by .is-folded CSS)
+          const faceUp = (p.isHuman && p.folded) || showCards;
           const c0 = revealed >= 1;
           const c1 = revealed >= 2;
           cardsHtml = '';
           if (c0) {
-            cardsHtml += renderCard(p.hole[0], !showCards, {
-              reveal: (showCards && (showdownFace || justPeek)),
+            cardsHtml += renderCard(p.hole[0], !faceUp, {
+              reveal: (faceUp && !p.folded && (showdownFace || justPeek)),
               win: winIds.has(p.id),
-              down: !showCards
+              down: !faceUp
             });
           }
           if (c1) {
-            cardsHtml += renderCard(p.hole[1], !showCards, {
-              reveal: (showCards && (showdownFace || justPeek)),
+            cardsHtml += renderCard(p.hole[1], !faceUp, {
+              reveal: (faceUp && !p.folded && (showdownFace || justPeek)),
               win: winIds.has(p.id),
-              down: !showCards
+              down: !faceUp
             });
+          }
+          if (p.isHuman && p.folded) {
+            cardsHtml =
+              '<div class="fold-review-wrap">' +
+              cardsHtml +
+              '<span class="fold-review-badge" aria-hidden="true">FOLD</span></div>';
           }
         }
       }

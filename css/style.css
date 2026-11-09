@@ -364,6 +364,51 @@ button.size-chip:hover:not(:disabled) {
   padding: 24px 0;
   letter-spacing: 0.15em;
 }
+
+/* Hero fold review: keep hole cards visible, dimmed/shadowed for post-hand check */
+.fold-review-wrap {
+  position: relative;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+}
+.fold-review-wrap .card {
+  opacity: 0.72;
+  filter: grayscale(0.4) brightness(0.82);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.55),
+    0 6px 14px rgba(0, 0, 0, 0.55),
+    inset 0 0 18px rgba(0, 0, 0, 0.28) !important;
+  transform: scale(0.94);
+}
+.fold-review-badge {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(-12deg);
+  z-index: 3;
+  pointer-events: none;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  color: #e8c4c4;
+  background: rgba(20, 8, 8, 0.72);
+  border: 1px solid rgba(160, 80, 80, 0.65);
+  padding: 2px 8px;
+  border-radius: 3px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+.seat.human.is-folded .seat-cards {
+  /* Keep review cards readable despite seat dim */
+  opacity: 1;
+  filter: none;
+}
+.seat.human.is-folded .fold-review-wrap .card {
+  opacity: 0.78;
+  filter: grayscale(0.35) brightness(0.88);
+}
 .bet-street {
   position: absolute;
   left: 50%;
@@ -850,6 +895,11 @@ button.size-chip:hover:not(:disabled) {
 .seat.is-out {
   opacity: 0.38;
   filter: grayscale(0.75) brightness(0.55);
+}
+/* Hero keeps a milder dim so folded hole cards stay reviewable */
+.seat.human.is-folded {
+  opacity: 0.82;
+  filter: grayscale(0.28) brightness(0.92);
 }
 .seat.is-folded .avatar-wrap,
 .seat.is-out .avatar-wrap {
@@ -1965,6 +2015,10 @@ body {
   opacity: 0.72 !important;
   filter: grayscale(0.35) !important;
 }
+.seat.human.is-folded {
+  opacity: 0.88 !important;
+  filter: grayscale(0.22) !important;
+}
 .seat.is-out {
   opacity: 0.55 !important;
 }
@@ -2268,6 +2322,50 @@ body.theme-pro .pot-display {
     color: #d5d0c4;
     max-width: 72px;
     line-height: 1.25;
+  }
+  .hero-hole-dock.is-folded-review {
+    opacity: 0.92;
+    border-color: rgba(140, 100, 100, 0.55);
+    background: linear-gradient(180deg, rgba(18, 12, 12, 0.94), rgba(10, 8, 8, 0.98));
+    box-shadow:
+      0 -4px 16px rgba(0, 0, 0, 0.5),
+      inset 0 0 28px rgba(0, 0, 0, 0.35);
+  }
+  .hero-hole-dock.is-folded-review .hero-hole-label {
+    color: #b8a090;
+  }
+  .hero-hole-cards.folded-review {
+    position: relative;
+  }
+  .hero-hole-cards.folded-review .card {
+    opacity: 0.72;
+    filter: grayscale(0.4) brightness(0.82);
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.55),
+      0 6px 14px rgba(0, 0, 0, 0.55),
+      inset 0 0 18px rgba(0, 0, 0, 0.28) !important;
+  }
+  .hero-hole-cards.folded-review::after {
+    content: 'FOLD';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(-12deg);
+    z-index: 3;
+    pointer-events: none;
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    color: #e8c4c4;
+    background: rgba(20, 8, 8, 0.72);
+    border: 1px solid rgba(160, 80, 80, 0.65);
+    padding: 3px 10px;
+    border-radius: 3px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  }
+  .hero-hole-dock.is-folded-review .hero-hole-meta {
+    color: #b8a8a0;
   }
 
   .action-bar-dock {
