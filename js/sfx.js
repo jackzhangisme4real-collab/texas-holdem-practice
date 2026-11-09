@@ -95,14 +95,96 @@
     }
   }
 
+
+  let bgmWanted = true;
+  let bgmNodes = null;
+  let bgmTimer = null;
+
+  function stopBgmInternal() {
+    if (bgmTimer) {
+      clearInterval(bgmTimer);
+      bgmTimer = null;
+    }
+    if (bgmNodes) {
+      try {
+        bgmNodes.forEach(function (n) {
+          try { n.stop(); } catch (e1) {}
+          try { n.disconnect(); } catch (e2) {}
+        });
+      } catch (e) {}
+      bgmNodes = null;
+    }
+  }
+
+  function startBgmInternal() {
+    if (!enabled || !bgmWanted) return;
+    const c = ac();
+    if (!c) return;
+    stopBgmInternal();
+    // Soft felt-room pad: two detuned sines through slow filter, very quiet
+    const master = c.createGain();
+    master.gain.value = 0.028;
+    master.connect(c.destination);
+    const filter = c.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 420;
+    filter.Q.value = 0.7;
+    filter.connect(master);
+    const nodes = [master, filter];
+    function voice(freq, type, gain) {
+      const o = c.createOscillator();
+      const g = c.createGain();
+      o.type = type;
+      o.frequency.value = freq;
+      g.gain.value = gain;
+      o.connect(g);
+      g.connect(filter);
+      o.start();
+      nodes.push(o, g);
+      return o;
+    }
+    voice(110, 'sine', 0.55);
+    voice(164.5, 'sine', 0.32);
+    voice(220.5, 'triangle', 0.12);
+    // gentle filter breathe
+    const now = c.currentTime;
+    filter.frequency.setValueAtTime(380, now);
+    try {
+      filter.frequency.linearRampToValueAtTime(520, now + 4);
+      filter.frequency.linearRampToValueAtTime(380, now + 8);
+    } catch (e) {}
+    bgmTimer = setInterval(function () {
+      if (!ctx || !bgmNodes) return;
+      const t = ctx.currentTime;
+      try {
+        filter.frequency.cancelScheduledValues(t);
+        filter.frequency.setValueAtTime(filter.frequency.value, t);
+        filter.frequency.linearRampToValueAtTime(500 + Math.random() * 40, t + 4);
+        filter.frequency.linearRampToValueAtTime(360 + Math.random() * 40, t + 8);
+      } catch (e) {}
+    }, 8000);
+    bgmNodes = nodes;
+  }
+
   const SFX = {
     setEnabled(v) {
       enabled = !!v;
       try {
         localStorage.setItem('th_practice_sfx_on', enabled ? '1' : '0');
       } catch (e) {}
+      if (!enabled) SFX.stopBgm();
+      else if (bgmWanted) SFX.startBgm();
     },
     isEnabled() { return enabled; },
+    setBgmEnabled(v) {
+      bgmWanted = !!v;
+      try {
+        localStorage.setItem('th_practice_bgm_on', bgmWanted ? '1' : '0');
+      } catch (e) {}
+      if (bgmWanted && enabled) SFX.startBgm();
+      else SFX.stopBgm();
+    },
+    isBgmEnabled() { return bgmWanted; },
     unlock() {
       ac();
       // warm decode
@@ -145,8 +227,14 @@
     },
     check() {
       play('check', function () {
-        tone(560, 0.06, 'sine', 0.14);
+        // table-knock: low thud + short click
+        noiseBurst(0.045, 0.16);
+        tone(180, 0.07, 'triangle', 0.22);
+        tone(420, 0.04, 'sine', 0.1, 0.035);
       });
+    },
+    knock() {
+      SFX.check();
     },
     bet() {
       SFX.chipsToPot();
@@ -160,13 +248,18 @@
     },
     click() {
       tone(740, 0.03, 'square', 0.08);
-    }
+    },
+    startBgm() { startBgmInternal(); },
+    stopBgm() { stopBgmInternal(); }
   };
 
   try {
     const saved = localStorage.getItem('th_practice_sfx_on');
     if (saved === '0') enabled = false;
     if (saved === '1') enabled = true;
+    const bg = localStorage.getItem('th_practice_bgm_on');
+    if (bg === '0') bgmWanted = false;
+    if (bg === '1') bgmWanted = true;
   } catch (e) {}
 
   global.PokerSFX = SFX;

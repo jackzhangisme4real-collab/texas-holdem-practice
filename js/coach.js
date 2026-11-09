@@ -398,33 +398,56 @@
       );
     }
 
+    const dense = opts.dense || !compact;
+    const sum =
+      '<div class="coach-sum">' +
+      '<span>' + pos.code + '</span>' +
+      (range ? ' · <b>' + range.key + '</b>' : '') +
+      (eqRandom ? ' · ~' + eqRandom.win + '%' : '') +
+      (facing ? ' · 面对加注' : '') +
+      ' · ' + streetZh +
+      '</div>';
+
+    let oddsHtml = '';
+    if (table.actionIndex === heroIndex) {
+      const toCall = Math.max(0, (table.currentBet || 0) - (hero.bet || 0));
+      if (toCall > 0) {
+        const pot = table.pot || 0;
+        const pct = Math.round((toCall / (pot + toCall)) * 100);
+        oddsHtml =
+          '<div class="coach-block coach-odds">' +
+          '<div class="coach-h">彩池赔率</div>' +
+          '<p class="coach-p">跟注 <b>' + toCall + '</b> · 池 <b>' + pot +
+          '</b> · 约需 <b class="coach-eq">' + pct + '%</b> 胜率打平</p>' +
+          (eqRandom
+            ? '<p class="coach-muted">当前估算 ~' + eqRandom.win + '%（随牌面更新）</p>'
+            : '') +
+          '</div>';
+      }
+    }
+
     let html = '';
-    if (compact) {
+    if (dense) {
+      // Desktop: full live commentary stack (pos + range + equity + pot odds + GTO)
+      html =
+        sum +
+        '<div class="coach-block"><div class="coach-h">① 位置 · ' + streetZh + '</div>' +
+        blockPos().replace('class="coach-block"', 'class="coach-inner"') + '</div>' +
+        '<div class="coach-block"><div class="coach-h">② 起手 / 范围</div>' +
+        blockRange().replace('class="coach-block"', 'class="coach-inner"') + '</div>' +
+        '<div class="coach-block"><div class="coach-h">③ 胜率估算</div>' +
+        blockEq().replace('class="coach-block"', 'class="coach-inner"') + '</div>' +
+        oddsHtml +
+        '<div class="coach-block"><div class="coach-h">④ 倾向解说</div>' +
+        blockGto().replace('class="coach-block"', 'class="coach-inner"') + '</div>';
+    } else if (compact) {
       if (tab === 'range') html = blockRange();
-      else if (tab === 'eq') html = blockEq();
+      else if (tab === 'eq') html = blockEq() + oddsHtml;
       else if (tab === 'gto') html = blockGto();
-      else html = blockPos();
-      // one-line summary strip
-      html =
-        '<div class="coach-sum">' +
-        '<span>' +
-        pos.code +
-        '</span>' +
-        (range ? ' · <b>' + range.key + '</b>' : '') +
-        (eqRandom ? ' · ~' + eqRandom.win + '%' : '') +
-        ' · ' +
-        streetZh +
-        '</div>' +
-        html;
+      else html = blockPos() + oddsHtml;
+      html = sum + html;
     } else {
-      html =
-        '<div class="coach-block"><div class="coach-h">① 位置 · ' +
-        streetZh +
-        '</div>' +
-        blockPos().replace('coach-block', 'coach-inner') +
-        '</div>';
-      // fallback full - simplify: concatenate tab blocks
-      html = blockPos() + blockRange() + blockEq() + blockGto();
+      html = sum + blockPos() + blockRange() + blockEq() + oddsHtml + blockGto();
     }
 
         return {
@@ -438,8 +461,167 @@
     };
   }
 
+
+  /**
+   * Spot Q&A from current table state (educational heuristics, not a solver).
+   * Returns { ok, answer, title }.
+   */
+  function answerQuestion(question, table, heroIndex, opts) {
+    opts = opts || {};
+    const q = String(question || '').trim();
+    if (!q) {
+      return { ok: false, title: '问答', answer: '请先输入你想问的问题。' };
+    }
+    if (!table) {
+      return { ok: false, title: '问答', answer: '牌桌尚未开始。开桌发牌后再问本手判断。' };
+    }
+    const hero = table.players[heroIndex];
+    if (!hero) {
+      return { ok: false, title: '问答', answer: '找不到英雄座位。' };
+    }
+    const cardsReady = !!opts.cardsVisible && hero.hole && hero.hole.length >= 2;
+    const ql0 = String(q).toLowerCase();
+    const wantsHole =
+      /跟|call|胜率|equity|起手|范围|该不该|怎么打|弃|open|raise|下注/.test(q) ||
+      /call|equity|fold/.test(ql0);
+    if (!cardsReady && wantsHole) {
+      // Still allow pure pot-odds math without naming hole cards
+      if (/赔率|odds|打平/.test(q) && table) {
+        const heroBet = hero.bet || 0;
+        const toCall = Math.max(0, (table.currentBet || 0) - heroBet);
+        const pot = table.pot || 0;
+        if (toCall > 0) {
+          const pct = Math.round((toCall / (pot + toCall)) * 100);
+          return {
+            ok: true,
+            title: '问答',
+            answer:
+              '（未亮手牌 · 仅赔率）当前跟注 ' +
+              toCall +
+              '、池约 ' +
+              pot +
+              '，大约需要 ' +
+              pct +
+              '% 胜率打平。看清手牌后可再问「该跟吗」。（教材启发式 · 非求解器）'
+          };
+        }
+      }
+      return {
+        ok: true,
+        title: '问答',
+        answer: '发牌完成、看清你的两张底牌后再问本手判断（避免剧透）。也可先问「现在彩池赔率怎么样」。'
+      };
+    }
+    if (!cardsReady) {
+      return {
+        ok: true,
+        title: '问答',
+        answer: '发牌完成后再结合本手牌作答。你可以问「什么是彩池赔率」或等手牌亮出。'
+      };
+    }
+
+    const pos = heroSeatInfo(table, heroIndex);
+    const range = rangeContext(hero.hole, pos.code);
+    const street = table.street || 'preflop';
+    const streetZh =
+      { preflop: '翻前', flop: '翻牌', turn: '转牌', river: '河牌', showdown: '摊牌' }[street] || street;
+    const board =
+      street === 'preflop'
+        ? []
+        : (table.community || []).slice(0, opts.boardRevealed != null ? opts.boardRevealed : 5);
+    const villains = Math.max(
+      1,
+      table.players.filter((p, i) => i !== heroIndex && !p.folded && !p.satOut).length
+    );
+    const eqRandom = estimateEquity(hero.hole, board, Math.min(villains, 3), street === 'preflop' ? 220 : 180);
+    const toCall = Math.max(0, (table.currentBet || 0) - (hero.bet || 0));
+    const pot = table.pot || 0;
+    const oddsPct = toCall > 0 ? Math.round((toCall / (pot + toCall)) * 100) : 0;
+    const myTurn = table.actionIndex === heroIndex && !table.handOver;
+    const facing = toCall > 0;
+    const key = range ? range.key : '??';
+    const disclaimer = '（教材启发式 · 非求解器）';
+
+    const ql = q.toLowerCase();
+    const askCall = /跟|call|跟注|该不该跟|要不要跟/.test(q) || /call/.test(ql);
+    const askOdds = /赔率|odds|打平|需要多少/.test(q);
+    const askEq = /胜率|equity|赢面|胜算|概率/.test(q);
+    const askPos = /位置|起手|范围|怎么打|该不该开|open|fold|弃/.test(q);
+    const askBet = /下注|加注|raise|bet|尺寸|多大/.test(q);
+    const askCheck = /过牌|check|敲/.test(q);
+
+    let lines = [];
+    lines.push('局势：' + streetZh + ' · ' + pos.nameZh + '（' + pos.code + '）· 手牌 ' + key + (facing ? ' · 需跟 ' + toCall : ' · 无人要你跟注') + ' · 池 ' + pot + '。');
+
+    if (askOdds || (askCall && facing)) {
+      if (facing) {
+        lines.push('彩池赔率：跟 ' + toCall + ' 打池 ' + pot + '，大约需要 ' + oddsPct + '% 胜率才打得平。');
+        if (eqRandom) {
+          const lean =
+            eqRandom.win + 2 >= oddsPct
+              ? '估算胜率略高于/接近打平线，跟注在数学上不亏；仍要看位置与对手范围。'
+              : '估算胜率低于打平线，没有足够听牌/隐含赔率时倾向弃牌。';
+          lines.push('粗算对 ' + eqRandom.vsLabel + ' 约 ' + eqRandom.win + '%。' + lean);
+        }
+      } else {
+        lines.push('当前没有跟注额，谈「跟注赔率」意义不大。可关注价值下注或过牌控池。');
+      }
+    }
+
+    if (askEq && !askOdds) {
+      if (eqRandom) {
+        lines.push('粗算胜率约 ' + eqRandom.win + '%（' + eqRandom.vsLabel + '）' + (eqRandom.tie ? '，平局约 ' + eqRandom.tie + '%' : '') + '。随公共牌变化会更新。');
+      } else {
+        lines.push('此刻胜率估算不可用，请等发牌完成后再问。');
+      }
+    }
+
+    if (askCall && !askOdds) {
+      if (!myTurn) {
+        lines.push('现在还不是你的行动，先观察前位选择。');
+      } else if (!facing) {
+        lines.push('面前没有加注要跟。可考虑过牌或主动下注（看牌力与位置）。');
+      } else if (eqRandom) {
+        if (range && range.tier === 'premium') {
+          lines.push('这是价值核心牌：多数场合倾向跟注甚至再加注建池，少慢玩。');
+        } else if (eqRandom.win + 2 >= oddsPct) {
+          lines.push('就赔率与粗算胜率看，跟注可接受；若只是弱高张且位置差，仍可纪律性弃牌。');
+        } else {
+          lines.push('赔率偏紧且牌力一般：教材倾向优先弃牌，把筹码留给更好的点。');
+        }
+      }
+    }
+
+    if (askPos || (!askCall && !askOdds && !askEq && !askBet && !askCheck)) {
+      if (range) {
+        lines.push('起手落点：' + range.label + '。' + range.fit);
+        lines.push('该位置常见开池宽约：' + range.openGuide);
+      }
+      const tips = gtoTips(pos.code, range, street, facing);
+      if (tips && tips.length > 1) lines.push(tips[1]);
+    }
+
+    if (askBet) {
+      if (!myTurn) {
+        lines.push('未轮到你时先计划：成牌偏价值尺寸，空气牌少无意义跟注。');
+      } else if (street === 'preflop') {
+        lines.push('翻前开池常见约 2–2.5bb；面对加注时 3-Bet 要有价值或明确阻挡牌理由。');
+      } else {
+        lines.push('翻后：干燥面可持续小注；湿润面放慢。价值下注讲清故事，别用中间尺寸乱打。');
+      }
+    }
+
+    if (askCheck) {
+      lines.push(facing ? '面对下注时不能过牌，只能跟/弃/再加。' : '无人下注时可过牌控池；作为开池方在湿润面也可更多过牌-决策。');
+    }
+
+    lines.push(disclaimer);
+    return { ok: true, title: '本手问答', answer: lines.join('\n') };
+  }
+
   global.PokerCoach = {
     analyze,
+    answerQuestion,
     heroSeatInfo,
     rangeContext,
     estimateEquity,

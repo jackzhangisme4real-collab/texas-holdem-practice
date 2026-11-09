@@ -33,6 +33,7 @@
       bigBlind: 10,
       difficulty: 'normal',
       sfx: true,
+      bgm: true,
       showRange: true,
       theme: 'q',
       tableId: 'micro'
@@ -92,7 +93,9 @@
     state.settings.difficulty = prog.difficulty || 'normal';
     state.settings.theme = prog.theme === 'pro' ? 'pro' : 'q';
     state.settings.sfx = prog.sfx !== false;
+    state.settings.bgm = prog.bgm !== false;
     state.settings.showRange = prog.showRange !== false;
+    if (SFX.setBgmEnabled) SFX.setBgmEnabled(state.settings.bgm);
     state.stats.hands = prog.hands || 0;
     state.stats.won = prog.won || 0;
     state.stats.folded = prog.folded || 0;
@@ -113,6 +116,7 @@
       difficulty: state.settings.difficulty,
       theme: state.settings.theme,
       sfx: state.settings.sfx,
+      bgm: state.settings.bgm !== false,
       showRange: state.settings.showRange,
       hands: state.stats.hands,
       won: state.stats.won,
@@ -288,14 +292,107 @@
     }
   }
 
+
+  function setAskDockOpen(open) {
+    const dock = el('ask-dock');
+    if (!dock) return;
+    dock.classList.toggle('open', !!open);
+    dock.setAttribute('aria-hidden', open ? 'false' : 'true');
+    if (open) {
+      const input = el('ask-input');
+      if (input) setTimeout(() => input.focus(), 30);
+    }
+  }
+
+  function appendAskMessage(role, text) {
+    const log = el('ask-dock-log');
+    if (!log) return;
+    const row = document.createElement('div');
+    row.className = 'ask-msg ask-msg-' + role;
+    const label = document.createElement('div');
+    label.className = 'ask-msg-role';
+    label.textContent = role === 'user' ? '你' : '助手';
+    const body = document.createElement('div');
+    body.className = 'ask-msg-body';
+    body.textContent = text;
+    row.appendChild(label);
+    row.appendChild(body);
+    log.appendChild(row);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function runAsk(question) {
+    const q = String(question || '').trim();
+    if (!q) return;
+    appendAskMessage('user', q);
+    let reply;
+    try {
+      if (!Coach || !Coach.answerQuestion) {
+        reply = { answer: '问答模块未加载。' };
+      } else {
+        const t = state.table;
+        const hi = t ? humanIndex() : -1;
+        reply = Coach.answerQuestion(q, t, hi, {
+          cardsVisible: heroCardsVisible(),
+          boardRevealed: state.boardRevealed
+        });
+      }
+    } catch (err) {
+      reply = { answer: '暂时无法回答，请稍后再试。' };
+    }
+    appendAskMessage('bot', (reply && reply.answer) || '没有合适的答复。');
+  }
+
+  function bindAskDock() {
+    const openBtn = el('btn-ask-open');
+    const closeBtn = el('btn-ask-close');
+    const form = el('ask-dock-form');
+    const chips = el('ask-dock-chips');
+    if (openBtn) {
+      openBtn.onclick = () => {
+        SFX.unlock();
+        SFX.click();
+        const dock = el('ask-dock');
+        const opening = !(dock && dock.classList.contains('open'));
+        setAskDockOpen(opening);
+      };
+    }
+    if (closeBtn) closeBtn.onclick = () => setAskDockOpen(false);
+    if (form) {
+      form.onsubmit = (ev) => {
+        ev.preventDefault();
+        const input = el('ask-input');
+        const q = input ? input.value : '';
+        if (input) input.value = '';
+        SFX.click();
+        runAsk(q);
+      };
+    }
+    if (chips) {
+      chips.querySelectorAll('[data-ask]').forEach((btn) => {
+        btn.onclick = () => {
+          SFX.click();
+          runAsk(btn.getAttribute('data-ask'));
+        };
+      });
+    }
+  }
+
   function bindUI() {
     function syncMuteBtn() {
       const b = el('btn-mute');
       if (!b) return;
       b.textContent = SFX.isEnabled() ? '🔊 音效' : '🔇 静音';
     }
+    let bgmBooted = false;
     ['pointerdown', 'keydown', 'touchstart'].forEach((ev) => {
-      document.body.addEventListener(ev, () => { SFX.unlock(); }, { once: false, passive: true });
+      document.body.addEventListener(ev, () => {
+        SFX.unlock();
+        if (!bgmBooted && state.settings.sfx !== false && state.settings.bgm !== false && SFX.startBgm) {
+          bgmBooted = true;
+          SFX.startBgm();
+        }
+      }, { once: false, passive: true });
     });
     const muteBtn = el('btn-mute');
     if (muteBtn) {
@@ -305,7 +402,10 @@
         state.settings.sfx = SFX.isEnabled();
         syncMuteBtn();
         if (el('set-sfx')) el('set-sfx').checked = SFX.isEnabled();
-        if (SFX.isEnabled()) SFX.click();
+        if (SFX.isEnabled()) {
+          SFX.click();
+          if (state.settings.bgm !== false && SFX.startBgm) SFX.startBgm();
+        }
       };
     }
     syncMuteBtn();
@@ -358,6 +458,7 @@
         document.body.classList.toggle('show-coach-mobile');
       };
     }
+    bindAskDock();
     const btnTables = el('btn-tables');
     if (btnTables) {
       btnTables.onclick = () => {
@@ -419,6 +520,7 @@
       el('set-bb').value = state.settings.bigBlind;
       el('set-diff').value = state.settings.difficulty;
       el('set-sfx').checked = state.settings.sfx;
+      if (el('set-bgm')) el('set-bgm').checked = state.settings.bgm !== false;
       el('set-range').checked = state.settings.showRange;
       toggleModal('modal-settings', true);
     };
@@ -432,8 +534,10 @@
       }
       state.settings.difficulty = el('set-diff').value;
       state.settings.sfx = el('set-sfx').checked;
+      state.settings.bgm = el('set-bgm') ? el('set-bgm').checked : true;
       state.settings.showRange = el('set-range').checked;
       SFX.setEnabled(state.settings.sfx);
+      if (SFX.setBgmEnabled) SFX.setBgmEnabled(state.settings.bgm);
       if (typeof syncMuteBtn === 'function') syncMuteBtn();
       else {
         const b = el('btn-mute');
@@ -505,6 +609,32 @@
     return state.table.players.findIndex((p) => p.isHuman);
   }
 
+  /** How many hero hole cards have "landed" for UI reveal */
+  function heroHoleLandedCount() {
+    const t = state.table;
+    if (!t) return 0;
+    const hi = humanIndex();
+    if (hi < 0) return 0;
+    const human = t.players[hi];
+    if (!human || !human.hole) return 0;
+    const landed = state.dealReveal[human.id] || 0;
+    if (state.dealing) return Math.min(landed, human.hole.length);
+    // Deal finished: always treat as fully landed even if late onLand lagged
+    return human.hole.length;
+  }
+
+  /** True once hero hole cards are face-up / readable in the UI (no spoilers before this) */
+  function heroCardsVisible() {
+    const t = state.table;
+    if (!t) return false;
+    const hi = humanIndex();
+    if (hi < 0) return false;
+    const human = t.players[hi];
+    if (!human || !human.hole || human.hole.length < 2) return false;
+    if (state.dealing) return false;
+    return heroHoleLandedCount() >= 2;
+  }
+
   function setTheme(theme) {
     state.settings.theme = theme === 'pro' ? 'pro' : 'q';
     try { localStorage.setItem('th_practice_theme_v1', state.settings.theme); } catch (e) {}
@@ -555,22 +685,23 @@
   /** HSP-style oval: hero bottom, dealer top-center empty, 5 others around */
   function seatPositions(n) {
     const mobile = isMobilePortrait();
+    // Top seats kept lower so avatar faces clear the stage/UI edge
     const spots = mobile
       ? [
           { left: '50%', top: '86%', side: 'bottom' },
-          { left: '10%', top: '72%', side: 'left' },
-          { left: '8%', top: '38%', side: 'left' },
-          { left: '24%', top: '12%', side: 'top' },
-          { left: '76%', top: '12%', side: 'top' },
-          { left: '90%', top: '72%', side: 'right' }
+          { left: '10%', top: '70%', side: 'left' },
+          { left: '8%', top: '40%', side: 'left' },
+          { left: '24%', top: '20%', side: 'top' },
+          { left: '76%', top: '20%', side: 'top' },
+          { left: '90%', top: '70%', side: 'right' }
         ]
       : [
           { left: '50%', top: '90%', side: 'bottom' },
-          { left: '12%', top: '78%', side: 'left' },
-          { left: '6%', top: '42%', side: 'left' },
-          { left: '22%', top: '10%', side: 'top' },
-          { left: '78%', top: '10%', side: 'top' },
-          { left: '88%', top: '78%', side: 'right' }
+          { left: '12%', top: '76%', side: 'left' },
+          { left: '7%', top: '44%', side: 'left' },
+          { left: '22%', top: '18%', side: 'top' },
+          { left: '78%', top: '18%', side: 'top' },
+          { left: '88%', top: '76%', side: 'right' }
         ];
     return spots.slice(0, n);
   }
@@ -740,8 +871,14 @@
       if (step >= order.length) {
         state.receivingSeat = -1;
         if (dealerEl) dealerEl.classList.remove('dealing');
-        // Keep cards face-down; briefly settle then peek human if they act first, else wait
+        // Ensure every seat shows both hole cards even if a late onLand lagged
+        t.players.forEach((p) => {
+          if (p.hole && p.hole.length) state.dealReveal[p.id] = p.hole.length;
+        });
         state.dealing = false;
+        // Hero dock is private: reveal hero faces immediately (seat peek still theatrical)
+        const hi = humanIndex();
+        if (hi >= 0) state.holePeeked[t.players[hi].id] = true;
         render();
         setTimeout(() => {
           state.busy = false;
@@ -788,8 +925,26 @@
 
   function flyDealCard(seatIndex, onLand) {
     const toSeat = document.querySelector('.seat[data-seat="' + seatIndex + '"]');
-    const toCards = toSeat ? toSeat.querySelector('.seat-cards') : null;
-    const to = toCards || toSeat;
+    let to = null;
+    const t = state.table;
+    const p = t && t.players[seatIndex];
+    // Mobile hides .seat-cards; fly hero cards into the visible hero dock instead
+    if (p && p.isHuman && isMobilePortrait()) {
+      const dockCards = el('hero-hole-cards');
+      if (dockCards && getComputedStyle(dockCards).display !== 'none') {
+        to = dockCards;
+      }
+    }
+    if (!to) {
+      const toCards = toSeat ? toSeat.querySelector('.seat-cards') : null;
+      // Prefer seat if seat-cards is display:none (zero rect breaks aim)
+      if (toCards) {
+        const r = toCards.getBoundingClientRect();
+        to = (r.width > 2 && r.height > 2) ? toCards : (toSeat || toCards);
+      } else {
+        to = toSeat;
+      }
+    }
     if (!to) {
       if (onLand) onLand();
       return;
@@ -918,19 +1073,58 @@
 
   function playActionSfx(type) {
     if (type === 'fold') SFX.fold();
-    else if (type === 'check') SFX.check();
-    else if (type === 'call' || type === 'bet' || type === 'raise' || type === 'allin') SFX.bet();
+    else if (type === 'check') {
+      if (SFX.knock) SFX.knock();
+      else SFX.check();
+    } else if (type === 'call' || type === 'bet' || type === 'raise' || type === 'allin') SFX.bet();
+  }
+
+  const ACTION_BURST_LABEL = {
+    fold: 'FOLD',
+    check: 'CHECK',
+    call: 'CALL',
+    bet: 'BET',
+    raise: 'RAISE',
+    allin: 'ALL-IN'
+  };
+
+  function showActionBurst(type, seatIndex) {
+    const label = ACTION_BURST_LABEL[type];
+    if (!label) return;
+    const layer = el('chip-fly-layer') || document.body;
+    const seatEl = seatIndex >= 0 ? document.querySelector('.seat[data-seat="' + seatIndex + '"]') : null;
+    const burst = document.createElement('div');
+    burst.className = 'action-burst action-burst-' + type;
+    burst.textContent = label;
+    if (seatEl) {
+      const r = seatEl.getBoundingClientRect();
+      burst.style.left = (r.left + r.width / 2) + 'px';
+      burst.style.top = (r.top + r.height * 0.15) + 'px';
+    } else {
+      burst.style.left = '50%';
+      burst.style.top = '42%';
+    }
+    layer.appendChild(burst);
+    void burst.offsetWidth;
+    burst.classList.add('show');
+    if (type === 'check' && seatEl) {
+      seatEl.classList.add('check-knock');
+      setTimeout(() => seatEl.classList.remove('check-knock'), 420);
+    }
+    setTimeout(() => burst.remove(), 980);
   }
 
   function onActionResolved(res, actorIndex) {
+    const hist = state.table && state.table.history ? state.table.history : [];
+    const last = hist[hist.length - 1];
+    const actType = last && last.type !== 'blind' ? last.type : null;
+    if (actType) showActionBurst(actType, actorIndex);
     maybeAnimateChips(actorIndex);
     state.prevPot = state.table.pot;
     syncPrevBets();
-    const hist = state.table.history || [];
-    const last = hist[hist.length - 1];
     const pendingBanter = {
       actorIndex: actorIndex,
-      type: last && last.type !== 'blind' ? last.type : null
+      type: actType
     };
     const streetChanged = res.streetAdvanced || state.table.street !== state.prevStreet;
     if (streetChanged) {
@@ -1092,8 +1286,10 @@
     const delta = (p.bet || 0) - prev;
     if (delta <= 0 && t.pot <= state.prevPot) return;
     const seatEl = document.querySelector('.seat[data-seat="' + actorIndex + '"]');
-    const zoneEl = document.querySelector('.bet-zone[data-seat="' + actorIndex + '"]') || el('pot-display');
+    // Prefer pot as flight target so chip-push reads as seat → pot (not sideways into a zone)
     const potEl = el('pot-display');
+    const potChip = potEl ? potEl.querySelector('.pot-chip') : null;
+    const target = potChip || potEl;
     const color = Chips.colorForAmount(delta > 0 ? delta : 10);
     const n = Math.min(6, Math.max(2, Math.ceil((delta || 10) / Math.max(t.bigBlind, 1))));
     const allIn = !!p.allIn || delta >= (p.chips + delta);
@@ -1103,16 +1299,13 @@
       seatEl.classList.add('stack-drain');
       setTimeout(() => seatEl.classList.remove('stack-drain'), 500);
     }
-    if (zoneEl) {
-      zoneEl.classList.add('zone-gain');
-      setTimeout(() => zoneEl.classList.remove('zone-gain'), 500);
+    // Animate an inner pot chip, not #pot-display itself (avoids transform fight / viewport jolt)
+    if (potChip) {
+      potChip.classList.add('pot-chip-pop');
+      setTimeout(() => potChip.classList.remove('pot-chip-pop'), 480);
     }
-    if (potEl) {
-      potEl.classList.add('pot-gain');
-      setTimeout(() => potEl.classList.remove('pot-gain'), 500);
-    }
-    playPushHands(seatEl, zoneEl || potEl, color, delta > 0 ? delta : t.bigBlind, allIn);
-    Chips.flyChips(seatEl, zoneEl || potEl, color, allIn ? Math.max(n, 5) : n);
+    playPushHands(seatEl, target, color, delta > 0 ? delta : t.bigBlind, allIn);
+    Chips.flyChips(seatEl, target, color, allIn ? Math.max(n, 5) : n);
   }
 
   function chipFill(color) {
@@ -1202,7 +1395,9 @@
           '</span></div>'
       )
       .join('');
-    box.scrollTop = box.scrollHeight;
+    try {
+      box.scrollTop = box.scrollHeight;
+    } catch (e) {}
   }
 
   function maybeBanter(actionType, actorIndex, lineage) {
@@ -1275,12 +1470,21 @@
       box.innerHTML = '<p class="coach-muted">发牌后显示简要建议。</p>';
       return;
     }
+    if (!heroCardsVisible()) {
+      box.innerHTML = '<p class="coach-muted">发牌完成、看清手牌后显示针对本手的建议。</p>';
+      return;
+    }
     if (human.folded) {
       box.innerHTML = '<p class="coach-muted">已弃牌 · 下一手刷新。</p>';
       return;
     }
     try {
-      const report = Coach.analyze(t, hi, { boardRevealed: state.boardRevealed, compact: true, tab: tab });
+      const report = Coach.analyze(t, hi, {
+        boardRevealed: state.boardRevealed,
+        compact: isMobilePortrait(),
+        tab: tab,
+        dense: !isMobilePortrait()
+      });
       box.innerHTML = report.html || '';
     } catch (err) {
       box.innerHTML = '<p class="coach-muted">助手暂时无法计算。</p>';
@@ -1309,31 +1513,35 @@
       if (metaEl) metaEl.textContent = '等待发牌';
       return;
     }
-    const peeked = !!state.holePeeked[human.id];
-    const showdownFace =
-      t.handOver && t.showdownResults && !t.showdownResults.foldWin && !human.folded;
-    // After fold, keep hole cards face-up (dimmed via CSS) for post-hand review
-    const show = human.folded || peeked || showdownFace;
     const landed = state.dealReveal[human.id] || 0;
-    const revealed = state.dealing ? landed : (landed || human.hole.length);
+    const revealed = state.dealing ? landed : human.hole.length;
     let html = '';
-    if (revealed >= 1) {
-      html += renderCard(human.hole[0], !show, { reveal: false, win: false });
+    if (!state.dealing) {
+      // Private hero dock: always face-up once the deal is over (fold-review stays face-up too)
+      html =
+        renderCard(human.hole[0], false, { reveal: false, win: false }) +
+        renderCard(human.hole[1], false, { reveal: false, win: false });
+    } else {
+      // During deal: never empty dashed slots — show backs, flip to face as each lands
+      html += revealed >= 1
+        ? renderCard(human.hole[0], false, { reveal: false, win: false })
+        : '<div class="card back hole-down" aria-hidden="true"></div>';
+      html += revealed >= 2
+        ? renderCard(human.hole[1], false, { reveal: false, win: false })
+        : '<div class="card back hole-down" aria-hidden="true"></div>';
     }
-    if (revealed >= 2) {
-      html += renderCard(human.hole[1], !show, { reveal: false, win: false });
-    }
-    if (!html) html = '<div class="card slot board-card"></div><div class="card slot board-card"></div>';
     cardsEl.innerHTML = html;
     cardsEl.classList.toggle('folded-review', !!human.folded);
     dock.classList.toggle('is-folded-review', !!human.folded);
     if (metaEl) {
       if (human.folded) {
-        const key = Ranges.holeKey ? Ranges.holeKey(human.hole) : '';
+        const key = heroCardsVisible() && Ranges.holeKey ? Ranges.holeKey(human.hole) : '';
         metaEl.textContent = '已弃 · 复盘' + (key ? (' · ' + key) : '') + ' · STACK ' + human.chips;
+      } else if (!heroCardsVisible()) {
+        metaEl.textContent = (state.dealing ? '发牌中' : '…') + ' · STACK ' + human.chips;
       } else {
         const key = Ranges.holeKey ? Ranges.holeKey(human.hole) : '';
-        metaEl.textContent = (show ? (key || '手牌') : '背面') + ' · STACK ' + human.chips;
+        metaEl.textContent = (key || '手牌') + ' · STACK ' + human.chips;
       }
     }
   }
@@ -1355,6 +1563,14 @@
       el('range-key').className = 'range-key muted';
       el('range-key').textContent = human.folded ? 'Fold' : '—';
       el('range-label').textContent = human.folded ? '本手已弃' : '等待发牌';
+      const rt0 = el('range-tip');
+      if (rt0) rt0.textContent = '';
+      return;
+    }
+    if (!heroCardsVisible()) {
+      el('range-key').className = 'range-key muted';
+      el('range-key').textContent = '—';
+      el('range-label').textContent = state.dealing ? '发牌中…' : '看牌后显示';
       const rt0 = el('range-tip');
       if (rt0) rt0.textContent = '';
       return;

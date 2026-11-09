@@ -32,6 +32,7 @@
           <button type="button" id="btn-theme-q" class="ghost">Q萌</button>
         </span>
         <button type="button" id="btn-mute" class="ghost" title="音效开关">🔊 音效</button>
+        <button type="button" id="btn-ask-open" class="ghost" title="本手问答">💬 问答</button>
         <button type="button" id="btn-coach-mobile" class="ghost btn-coach-mobile" title="GTO助手">助手</button>
         <button type="button" id="btn-tables" class="ghost">选桌</button>
         <button type="button" id="btn-settings" class="ghost">设置</button>
@@ -159,6 +160,26 @@
     <p class="footer-note">练习筹码 · 离线单机 · 非真钱</p>
   </div>
 
+  
+  <div class="ask-dock" id="ask-dock" aria-hidden="true">
+    <div class="ask-dock-head">
+      <div class="ask-dock-title">本手问答 · 练手助手</div>
+      <button type="button" class="ghost ask-dock-close" id="btn-ask-close" aria-label="关闭">✕</button>
+    </div>
+    <div class="ask-dock-hint">针对当前这一手提问（跟注？赔率？位置？）。答复基于本机启发式，非求解器。</div>
+    <div class="ask-dock-log" id="ask-dock-log" role="log" aria-live="polite"></div>
+    <form class="ask-dock-form" id="ask-dock-form">
+      <input type="text" id="ask-input" maxlength="120" placeholder="例如：这里该跟吗？彩池赔率多少？" autocomplete="off" />
+      <button type="submit" class="primary" id="btn-ask-send">发送</button>
+    </form>
+    <div class="ask-dock-chips" id="ask-dock-chips">
+      <button type="button" data-ask="这里该跟注吗？">该跟吗</button>
+      <button type="button" data-ask="现在彩池赔率怎么样？">赔率</button>
+      <button type="button" data-ask="我的位置和起手怎么打？">位置/起手</button>
+      <button type="button" data-ask="大概胜率多少？">胜率</button>
+    </div>
+  </div>
+
   <div id="chip-fly-layer" aria-hidden="true"></div>
 
   <div class="modal" id="modal-guided" aria-hidden="true">
@@ -232,6 +253,10 @@
       <div class="toggle-row">
         <span>音效</span>
         <label><input type="checkbox" id="set-sfx" checked /> 开启</label>
+      </div>
+      <div class="toggle-row">
+        <span>牌桌氛围音乐</span>
+        <label><input type="checkbox" id="set-bgm" checked /> 开启（随音效静音）</label>
       </div>
       <div class="toggle-row">
         <span>起手牌提示</span>
