@@ -1823,3 +1823,275 @@ body.theme-pro .board-area {
 @media (max-width: 900px) {
   .coach-assist { max-height: 36vh; }
 }
+
+
+/* === HSP viewport fill layout === */
+html, body {
+  height: 100%;
+  margin: 0;
+}
+body {
+  padding: 4px 6px 6px !important;
+  min-height: 100vh;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+.app {
+  max-width: none !important;
+  width: 100%;
+  margin: 0;
+  min-height: calc(100vh - 10px);
+  display: flex;
+  flex-direction: column;
+  gap: 4px !important;
+}
+.topbar {
+  flex: 0 0 auto;
+  padding: 4px 8px !important;
+}
+.layout.layout-3 {
+  flex: 1 1 auto;
+  display: grid !important;
+  grid-template-columns: 132px minmax(0, 1fr) 210px !important;
+  gap: 6px !important;
+  align-items: stretch;
+  min-height: 0;
+}
+.side-left, .side-right {
+  max-height: none !important;
+  overflow: auto;
+  gap: 6px;
+}
+.side-left .panel, .side-right .panel { margin: 0; }
+.panel-status { padding: 6px !important; }
+.stats-mini {
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+  margin: 6px 0;
+}
+.stats-mini .stat { padding: 3px; }
+.range-box-mini {
+  padding: 4px 6px;
+  margin-top: 4px;
+}
+.range-box-mini .range-key { font-size: 0.85rem; }
+.range-box-mini .range-label { font-size: 0.62rem; }
+.action-log {
+  max-height: 64px !important;
+  font-size: 0.62rem !important;
+  margin: 4px 0;
+}
+.mini-tools button { padding: 2px 5px !important; font-size: 0.62rem !important; }
+
+.table-wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  padding: 6px 8px 8px !important;
+  overflow: visible !important;
+}
+.street-progress {
+  flex: 0 0 auto;
+  margin-bottom: 2px !important;
+  padding: 3px 4px !important;
+}
+.table-stage {
+  flex: 1 1 auto;
+  position: relative;
+  min-height: min(62vh, 560px) !important;
+  height: auto;
+  padding: 8px 4px 4px !important;
+  overflow: visible !important;
+  perspective: 1400px;
+}
+.rail-ring {
+  position: absolute !important;
+  left: 8%;
+  right: 8%;
+  top: 14%;
+  bottom: 16%;
+  margin: 0 !important;
+  border-radius: 50% / 42%;
+  transform: rotateX(10deg);
+  transform-style: preserve-3d;
+  z-index: 2;
+}
+.felt {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  border-radius: 50% / 42%;
+}
+.seats, .seats.seats-outside {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 8 !important;
+  pointer-events: none;
+}
+.seats .seat {
+  pointer-events: auto;
+  width: 118px !important;
+  transform: translate(-50%, -50%);
+  filter: none !important;
+  opacity: 1 !important;
+}
+.seat.side-top, .seat.side-bottom, .seat.side-left, .seat.side-right, .seat.side-in {
+  transform: translate(-50%, -50%) !important;
+  scale: none;
+}
+.seat .avatar-wrap {
+  width: 72px;
+  height: 78px;
+  margin: 0 auto 2px;
+  background: linear-gradient(165deg, #2a322c, #151a16);
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 2px #1a120c,
+    0 0 0 3px rgba(201,162,39,0.7),
+    0 8px 14px rgba(0,0,0,0.45);
+}
+.seat.human .avatar-wrap {
+  width: 80px;
+  height: 86px;
+  box-shadow:
+    0 0 0 2px #1a120c,
+    0 0 0 4px #c9a227,
+    0 10px 16px rgba(201,162,39,0.28);
+}
+.seat.is-folded {
+  opacity: 0.72 !important;
+  filter: grayscale(0.35) !important;
+}
+.seat.is-out {
+  opacity: 0.55 !important;
+}
+.seat-info {
+  padding: 4px 5px !important;
+  font-size: 0.68rem;
+}
+.seat-name { font-size: 0.72rem !important; }
+.stack-label .stack-amt { font-size: 0.9rem !important; }
+
+/* Dealer always top-center of stage */
+.dealer-station,
+.dealer-station.dealer-opposite,
+body.theme-pro .dealer-station.pro-shoe {
+  position: absolute !important;
+  left: 50% !important;
+  top: 2% !important;
+  transform: translate(-50%, 0) !important;
+  z-index: 12 !important;
+  display: flex !important;
+  width: auto;
+}
+
+.action-bar-dock {
+  flex: 0 0 auto;
+  margin-top: 6px;
+  padding: 8px 10px !important;
+  border: 1px solid rgba(212,175,55,0.35);
+  background: linear-gradient(180deg, rgba(24,20,14,0.96), rgba(10,10,10,0.96));
+  box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+}
+.action-bar-dock .action-main {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+.action-bar-dock .action-main button {
+  padding: 10px 4px !important;
+  font-size: 0.78rem !important;
+  font-weight: 800;
+}
+.action-bar-dock .size-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.action-bar-dock .bet-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.bet-hint { color: #9a958a; font-size: 0.7rem; }
+
+.tip-panel-compact {
+  padding: 6px 7px !important;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+.coach-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+  margin-bottom: 6px;
+}
+.coach-tab {
+  padding: 4px 2px !important;
+  font-size: 0.62rem !important;
+  background: rgba(255,255,255,0.04);
+}
+.coach-tab.active {
+  background: linear-gradient(180deg, #c9a227, #8a6b12) !important;
+  color: #1a1200 !important;
+  border-color: #f0d78c !important;
+  font-weight: 800;
+}
+.coach-assist {
+  max-height: none !important;
+  flex: 1 1 auto;
+  overflow: auto;
+  font-size: 0.7rem !important;
+}
+.coach-sum {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--gold-bright);
+  margin-bottom: 6px;
+  padding: 4px 6px;
+  background: rgba(212,175,55,0.1);
+  border-radius: 6px;
+  border: 1px solid rgba(212,175,55,0.25);
+}
+.tip-body-compact {
+  margin-top: 6px;
+  font-size: 0.68rem !important;
+  max-height: 4.5em;
+  overflow: auto;
+  color: #a89f8c;
+}
+.footer-note {
+  text-align: center;
+  font-size: 0.62rem;
+  margin: 2px 0 0;
+  opacity: 0.55;
+}
+
+body.theme-pro .board-area {
+  top: 40% !important;
+}
+body.theme-pro .pot-display {
+  top: 68% !important;
+}
+
+@media (max-width: 1100px) {
+  .layout.layout-3 {
+    grid-template-columns: 1fr !important;
+  }
+  .table-stage { min-height: 52vh !important; }
+  .side-left, .side-right { max-height: 28vh; }
+}
+@media (max-width: 720px) {
+  .layout.layout-3 { gap: 4px !important; }
+  .seats .seat { width: 96px !important; }
+  .seat .avatar-wrap { width: 58px; height: 64px; }
+  .action-bar-dock .action-main { grid-template-columns: repeat(3, 1fr); }
+  .rail-ring { left: 4%; right: 4%; top: 16%; bottom: 14%; }
+}

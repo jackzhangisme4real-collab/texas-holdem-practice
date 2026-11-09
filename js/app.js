@@ -38,6 +38,7 @@
       tableId: 'micro'
     },
     progressReady: false,
+    coachTab: 'pos',
     dealing: false,
     receivingSeat: -1,
     dealReveal: {},
@@ -328,6 +329,12 @@
       btn.onclick = () => applySizeShortcut(btn.getAttribute('data-size'));
     });
 
+    document.querySelectorAll('.coach-tab').forEach((btn) => {
+      btn.onclick = () => {
+        state.coachTab = btn.getAttribute('data-ctab') || 'pos';
+        renderCoach();
+      };
+    });
     el('btn-next-hand').onclick = () => startNextHand();
     el('btn-restart').onclick = () => {
       if (confirm('重开当前牌桌？将按该桌起始筹码重置你的练习筹码（统计可保留）。')) {
@@ -529,39 +536,34 @@
     }
   }
 
+  /** HSP-style oval: hero bottom, dealer top-center empty, 5 others around */
   function seatPositions(n) {
-    if (state.settings.theme === 'q') {
-      // 你在下中；荷官在上中对面；其余沿长桌左右排开（更靠外）
-      const q = [
-        { left: '50%', top: '97%', side: 'bottom' }, // 你
-        { left: '16%', top: '97%', side: 'bottom' },
-        { left: '3%', top: '52%', side: 'left' },
-        { left: '22%', top: '6%', side: 'top' },
-        { left: '78%', top: '6%', side: 'top' },
-        { left: '84%', top: '97%', side: 'bottom' }
-      ];
-      return q.slice(0, n);
-    }
     const spots = [
-      { left: '50%', top: '84%', side: 'in' },
-      { left: '11%', top: '64%', side: 'in' },
-      { left: '11%', top: '28%', side: 'in' },
-      { left: '50%', top: '11%', side: 'in' },
-      { left: '89%', top: '28%', side: 'in' },
-      { left: '89%', top: '64%', side: 'in' }
+      { left: '50%', top: '90%', side: 'bottom' }, // 你
+      { left: '12%', top: '78%', side: 'left' },
+      { left: '6%', top: '42%', side: 'left' },
+      { left: '22%', top: '10%', side: 'top' },  // left of dealer
+      { left: '78%', top: '10%', side: 'top' },  // right of dealer
+      { left: '94%', top: '42%', side: 'right' }
     ];
+    // 6th wraps near bottom-right if needed
+    if (n > 6) {
+      spots.push({ left: '88%', top: '78%', side: 'right' });
+    } else if (n === 6) {
+      // use bottom-right instead of only mid-right for balance
+      spots[5] = { left: '88%', top: '78%', side: 'right' };
+    }
     return spots.slice(0, n);
   }
 
   function betZonePositions(n) {
-    // On-felt partitions aligned to outside seats (no top-center player — dealer there)
     const q = [
-      { left: '50%', top: '86%' }, // 你
-      { left: '18%', top: '86%' },
-      { left: '8%', top: '50%' },  // left short
-      { left: '24%', top: '14%' },
-      { left: '76%', top: '14%' },
-      { left: '82%', top: '86%' }
+      { left: '50%', top: '78%' },
+      { left: '22%', top: '70%' },
+      { left: '14%', top: '48%' },
+      { left: '28%', top: '22%' },
+      { left: '72%', top: '22%' },
+      { left: '78%', top: '70%' }
     ];
     return q.slice(0, n);
   }
@@ -1239,6 +1241,10 @@
   function renderCoach() {
     const box = el('coach-assist');
     if (!box || !Coach) return;
+    const tab = state.coachTab || 'pos';
+    document.querySelectorAll('.coach-tab').forEach((b) => {
+      b.classList.toggle('active', b.getAttribute('data-ctab') === tab);
+    });
     const t = state.table;
     if (!t) {
       box.innerHTML = '<p class="coach-muted">等待开桌…</p>';
@@ -1247,20 +1253,16 @@
     const hi = humanIndex();
     const human = t.players[hi];
     if (!human || !human.hole || human.hole.length < 2) {
-      box.innerHTML = '<p class="coach-muted">发到你的底牌后，这里会给出位置、范围与胜率估算。</p>';
+      box.innerHTML = '<p class="coach-muted">发牌后显示简要建议。</p>';
       return;
     }
     if (human.folded) {
-      box.innerHTML = '<p class="coach-muted">本手已弃牌。下一手发牌后会刷新 GTO 助手。</p>';
+      box.innerHTML = '<p class="coach-muted">已弃牌 · 下一手刷新。</p>';
       return;
     }
     try {
-      const report = Coach.analyze(t, hi, { boardRevealed: state.boardRevealed });
+      const report = Coach.analyze(t, hi, { boardRevealed: state.boardRevealed, compact: true, tab: tab });
       box.innerHTML = report.html || '';
-      if (report.title && el('tip-title') && (!state.tipPanel || state.tipPanel._coachTitle !== false)) {
-        // keep street tip title if set; still label assist
-        if (!state.tipPanel) el('tip-title').textContent = report.title;
-      }
     } catch (err) {
       box.innerHTML = '<p class="coach-muted">助手暂时无法计算。</p>';
     }
@@ -1272,7 +1274,8 @@
       box.style.opacity = '0.35';
       el('range-key').textContent = '已隐藏';
       el('range-label').textContent = '可在设置中开启';
-      el('range-tip').textContent = '';
+      const rtX = el('range-tip');
+      if (rtX) rtX.textContent = '';
       return;
     }
     box.style.opacity = '1';
@@ -1282,15 +1285,17 @@
       el('range-key').className = 'range-key muted';
       el('range-key').textContent = human.folded ? 'Fold' : '—';
       el('range-label').textContent = human.folded ? '本手已弃' : '等待发牌';
-      el('range-tip').textContent = '';
+      const rt0 = el('range-tip');
+      if (rt0) rt0.textContent = '';
       return;
     }
     // Only meaningful preflop as "starting hand" tip; still show key later as reference
     const info = Ranges.classify(human.hole);
     el('range-key').className = 'range-key ' + info.color;
     el('range-key').textContent = info.key;
-    el('range-label').textContent = info.label + (t.street === 'preflop' ? '' : '（翻前参考）');
-    el('range-tip').textContent = info.tip;
+    el('range-label').textContent = info.label + (t.street === 'preflop' ? '' : '（翻前）');
+    const rt = el('range-tip');
+    if (rt) rt.textContent = info.tip;
   }
 
   function render() {

@@ -40,36 +40,26 @@
 
     <div class="layout layout-3">
       <aside class="side side-left">
-        <div class="panel panel-compact">
+        <div class="panel panel-compact panel-status">
           <h2>状态</h2>
           <div class="status-line" id="status-line">准备中</div>
           <div id="showdown-box" hidden></div>
+          <div class="range-box range-box-mini" id="range-box">
+            <div class="range-key muted" id="range-key">—</div>
+            <div class="range-label" id="range-label">等待发牌</div>
+          </div>
+          <div class="stats-grid stats-mini" id="stats-grid">
+            <div class="stat"><b id="stat-hands">0</b><span>手</span></div>
+            <div class="stat"><b id="stat-won">0</b><span>赢</span></div>
+            <div class="stat"><b id="stat-fold">0</b><span>弃</span></div>
+            <div class="stat"><b id="stat-profit">0</b><span>盈亏</span></div>
+          </div>
+          <div class="action-log" id="action-log"><div class="action-log-row"><span class="det">…</span></div></div>
           <div class="mini-tools">
             <button type="button" id="btn-help" class="ghost">教学</button>
             <button type="button" id="btn-ranks" class="ghost">牌力</button>
             <button type="button" id="btn-range-chart" class="ghost">范围</button>
             <button type="button" id="btn-stats" class="ghost">统计</button>
-          </div>
-        </div>
-        <div class="panel panel-compact">
-          <h2>本手行动</h2>
-          <div class="action-log" id="action-log"><div class="action-log-row"><span class="det">等待开局…</span></div></div>
-        </div>
-        <div class="panel panel-compact">
-          <h2>起手</h2>
-          <div class="range-box" id="range-box">
-            <div class="range-key muted" id="range-key">—</div>
-            <div class="range-label" id="range-label">等待发牌</div>
-            <div class="range-tip" id="range-tip">翻前档位参考</div>
-          </div>
-        </div>
-        <div class="panel panel-compact">
-          <h2>统计</h2>
-          <div class="stats-grid" id="stats-grid">
-            <div class="stat"><b id="stat-hands">0</b><span>手</span></div>
-            <div class="stat"><b id="stat-won">0</b><span>赢</span></div>
-            <div class="stat"><b id="stat-fold">0</b><span>弃</span></div>
-            <div class="stat"><b id="stat-profit">0</b><span>盈亏</span></div>
           </div>
           <div class="chip-legend" id="chip-legend" title="筹码面额" hidden></div>
         </div>
@@ -111,20 +101,8 @@
             </div>
           </div>
         </div>
-      </section>
 
-      <aside class="side side-right">
-        <div class="panel tip-panel">
-          <h2 id="tip-title">GTO 练手助手</h2>
-          <div class="coach-assist" id="coach-assist">
-            <p class="coach-muted">拿到底牌后，这里会显示：位置优劣、起手范围语境、胜率估算与轻量 GTO 倾向（离线近似，非求解器）。</p>
-          </div>
-          <div class="tip-divider"></div>
-          <div class="tip-body" id="tip-body">街道与手后短提示会显示在这里。</div>
-        </div>
-
-        <div class="panel action-bar" id="action-bar">
-          <h2>操作</h2>
+        <div class="panel action-bar action-bar-dock" id="action-bar">
           <div class="size-row" id="size-row">
             <button type="button" class="size-chip" data-size="0.5">1/2</button>
             <button type="button" class="size-chip" data-size="0.75">3/4</button>
@@ -140,22 +118,39 @@
             <div class="bet-line">
               <span>金额</span>
               <input type="number" id="bet-input" min="0" step="1" value="20" />
-              <span id="bet-hint" style="color:#9a958a;font-size:0.7rem;"></span>
+              <span id="bet-hint" class="bet-hint"></span>
             </div>
           </div>
           <div class="action-main">
-            <button type="button" id="btn-fold" class="danger">FOLD 弃牌</button>
-            <button type="button" id="btn-check">CHECK 过牌</button>
-            <button type="button" id="btn-call" class="primary">CALL 跟注</button>
-            <button type="button" id="btn-bet" class="ok">BET 下注</button>
-            <button type="button" id="btn-allin" class="gold">ALL-IN 全下</button>
+            <button type="button" id="btn-fold" class="danger">FOLD</button>
+            <button type="button" id="btn-check">CHECK</button>
+            <button type="button" id="btn-call" class="primary">CALL</button>
+            <button type="button" id="btn-bet" class="ok">BET</button>
+            <button type="button" id="btn-allin" class="gold">ALL-IN</button>
           </div>
-          <button type="button" id="btn-next-hand" class="primary" hidden>NEXT HAND 下一手</button>
+          <button type="button" id="btn-next-hand" class="primary" hidden>NEXT HAND</button>
+        </div>
+      </section>
+
+      <aside class="side side-right">
+        <div class="panel tip-panel tip-panel-compact">
+          <h2 id="tip-title">GTO 助手</h2>
+          <div class="coach-tabs" id="coach-tabs" role="tablist">
+            <button type="button" class="coach-tab active" data-ctab="pos">位置</button>
+            <button type="button" class="coach-tab" data-ctab="range">范围</button>
+            <button type="button" class="coach-tab" data-ctab="eq">胜率</button>
+            <button type="button" class="coach-tab" data-ctab="gto">倾向</button>
+          </div>
+          <div class="coach-assist" id="coach-assist">
+            <p class="coach-muted">发牌后显示简要建议。</p>
+          </div>
+          <div class="tip-body tip-body-compact" id="tip-body"></div>
+          <p class="range-tip" id="range-tip" hidden></p>
         </div>
       </aside>
     </div>
 
-    <p class="footer-note">GREEN ENTERTAINMENT · NLHE PRACTICE · OFFLINE · NO REAL MONEY</p>
+    <p class="footer-note">练习筹码 · 离线单机 · 非真钱</p>
   </div>
 
   <div id="chip-fly-layer" aria-hidden="true"></div>

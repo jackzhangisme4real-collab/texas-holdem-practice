@@ -345,81 +345,89 @@
       { preflop: '翻前', flop: '翻牌', turn: '转牌', river: '河牌', showdown: '摊牌' }[street] ||
       street;
 
+    const compact = !!opts.compact;
+    const tab = opts.tab || 'pos';
+
+    function blockPos() {
+      return (
+        '<div class="coach-block">' +
+        '<div class="coach-pos"><b>' + pos.nameZh + '</b> · <span class="coach-edge">' + pos.edge + '</span></div>' +
+        '<p class="coach-p">' + pos.edgeDetail + ' 对手约 <b>' + pos.remaining + '</b> 人。</p>' +
+        '</div>'
+      );
+    }
+    function blockRange() {
+      if (!range) return '<p class="coach-muted">暂无起手。</p>';
+      return (
+        '<div class="coach-block">' +
+        '<div class="coach-hand"><span class="coach-key">' + range.key + '</span> ' + range.label + '</div>' +
+        '<p class="coach-p">' + range.buckets.join(' · ') + '。' + range.fit + '</p>' +
+        '<p class="coach-muted">开池宽约 ' + range.openGuide + '</p>' +
+        '</div>'
+      );
+    }
+    function blockEq() {
+      let h = '<div class="coach-block">';
+      if (eqRandom) {
+        h +=
+          '<p class="coach-p">' +
+          eqRandom.vsLabel +
+          '：<b class="coach-eq">' +
+          eqRandom.win +
+          '%</b>' +
+          (eqRandom.tie ? '（平 ' + eqRandom.tie + '%）' : '') +
+          '</p>';
+      }
+      if (eqTight) {
+        h +=
+          '<p class="coach-p">' +
+          eqTight.vsLabel +
+          '：<b class="coach-eq">' +
+          eqTight.win +
+          '%</b></p>';
+      }
+      h += '<p class="coach-muted">估计 · 非求解器 · ' + streetZh + '</p></div>';
+      return h;
+    }
+    function blockGto() {
+      const short = tips.slice(0, compact ? 3 : tips.length);
+      return (
+        '<div class="coach-block"><ul class="coach-tips">' +
+        short.map((x) => '<li>' + x + '</li>').join('') +
+        '</ul></div>'
+      );
+    }
+
     let html = '';
-    html += '<div class="coach-block">';
-    html += '<div class="coach-h">① 位置 · ' + streetZh + '</div>';
-    html +=
-      '<div class="coach-pos"><b>' +
-      pos.nameZh +
-      '</b> · <span class="coach-edge">' +
-      pos.edge +
-      '</span></div>';
-    html +=
-      '<p class="coach-p">' +
-      pos.edgeDetail +
-      ' 当前对手仍在手数：约 <b>' +
-      pos.remaining +
-      '</b> 人。</p>';
-    html += '</div>';
-
-    html += '<div class="coach-block">';
-    html += '<div class="coach-h">② 起手牌 / 范围语境</div>';
-    if (range) {
-      html +=
-        '<div class="coach-hand"><span class="coach-key">' +
-        range.key +
-        '</span> ' +
-        range.label +
-        '</div>';
-      html +=
-        '<p class="coach-p">粗分桶：' +
-        range.buckets.join('、') +
-        '。' +
-        range.fit +
-        '</p>';
-      html +=
-        '<p class="coach-p coach-muted">教材参考：本位置常规开池宽度 ' +
-        range.openGuide +
-        '（6-max 粗估）。</p>';
+    if (compact) {
+      if (tab === 'range') html = blockRange();
+      else if (tab === 'eq') html = blockEq();
+      else if (tab === 'gto') html = blockGto();
+      else html = blockPos();
+      // one-line summary strip
+      html =
+        '<div class="coach-sum">' +
+        '<span>' +
+        pos.code +
+        '</span>' +
+        (range ? ' · <b>' + range.key + '</b>' : '') +
+        (eqRandom ? ' · ~' + eqRandom.win + '%' : '') +
+        ' · ' +
+        streetZh +
+        '</div>' +
+        html;
     } else {
-      html += '<p class="coach-p">暂无起手数据。</p>';
+      html =
+        '<div class="coach-block"><div class="coach-h">① 位置 · ' +
+        streetZh +
+        '</div>' +
+        blockPos().replace('coach-block', 'coach-inner') +
+        '</div>';
+      // fallback full - simplify: concatenate tab blocks
+      html = blockPos() + blockRange() + blockEq() + blockGto();
     }
-    html += '</div>';
 
-    html += '<div class="coach-block">';
-    html += '<div class="coach-h">③ 胜率估算 <span class="coach-tag">估计 · 非求解器</span></div>';
-    if (eqRandom) {
-      html +=
-        '<p class="coach-p">对 <b>' +
-        eqRandom.vsLabel +
-        '</b>：约 <b class="coach-eq">' +
-        eqRandom.win +
-        '%</b> 胜' +
-        (eqRandom.tie ? '，平局约 ' + eqRandom.tie + '%' : '') +
-        ' <span class="coach-muted">（' +
-        eqRandom.trials +
-        ' 次抽样）</span></p>';
-    }
-    if (eqTight) {
-      html +=
-        '<p class="coach-p">对 <b>' +
-        eqTight.vsLabel +
-        '</b>：约 <b class="coach-eq">' +
-        eqTight.win +
-        '%</b> 胜' +
-        (eqTight.tie ? '，平局约 ' + eqTight.tie + '%' : '') +
-        '</p>';
-    }
-    html +=
-      '<p class="coach-muted">说明：离线蒙特卡洛近似，用于建立感觉；真 GTO 还依赖筹码深度、行动线与对手范围。</p>';
-    html += '</div>';
-
-    html += '<div class="coach-block">';
-    html += '<div class="coach-h">④ 轻量 GTO 倾向</div>';
-    html += '<ul class="coach-tips">' + tips.map((x) => '<li>' + x + '</li>').join('') + '</ul>';
-    html += '</div>';
-
-    return {
+        return {
       ok: true,
       title: 'GTO 练手助手',
       html,
