@@ -9,7 +9,9 @@
 
 **https://jackzhangisme4real-collab.github.io/texas-holdem-practice/**
 
-打开即可单机练手。进度写在**这台设备、这个浏览器的 localStorage** 里，换设备或清站点数据会从头开始。这不是联机牌局，也不能和朋友坐同一桌对打。
+站点文件在 `main` 分支根目录（`index.html` 与本说明同级）。打开即可单机练手。进度写在**这台设备、这个浏览器的 localStorage** 里，换设备或清站点数据会从头开始。这不是联机牌局，也不能和朋友坐同一桌对打。
+
+若打开后是 GitHub 的 404 页，需要有仓库管理权限的人到 **Settings → Pages**，Source 选 **Deploy from a branch**，Branch 选 **`main`**，文件夹选 **`/ (root)`**，保存后等一两分钟再刷新。
 
 ## 怎么打开（本机）
 
