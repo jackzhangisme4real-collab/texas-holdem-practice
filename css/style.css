@@ -1747,7 +1747,7 @@ body.theme-pro .board-area {
   .table-grid { grid-template-columns: 1fr; }
   .action-bar .btn-row { flex-wrap: wrap; }
   .card.board-card { --cw: 48px; --ch: 68px; }
-  .seat { transform: scale(0.92); }
+  /* seat scale removed — breaks translate(-50%,-50%) anchoring */
   body.theme-q .layout-3,
   body.theme-q .layout.layout-3 {
     grid-template-columns: 1fr !important;
@@ -2094,4 +2094,225 @@ body.theme-pro .pot-display {
   .seat .avatar-wrap { width: 58px; height: 64px; }
   .action-bar-dock .action-main { grid-template-columns: repeat(3, 1fr); }
   .rail-ring { left: 4%; right: 4%; top: 16%; bottom: 14%; }
+}
+
+
+/* === Mobile portrait: hero cards + compact table === */
+.hero-hole-dock {
+  display: none;
+}
+@media (max-width: 720px) {
+  html, body {
+    height: auto;
+    min-height: 100%;
+    overflow-x: hidden;
+  }
+  body {
+    padding: 2px 2px 0 !important;
+    padding-bottom: 0 !important;
+  }
+  .app {
+    min-height: 100dvh;
+    gap: 2px !important;
+  }
+  .footer-note { display: none; }
+  .topbar {
+    padding: 3px 6px !important;
+    gap: 4px !important;
+  }
+  .brand span, .meta .street-now, #session-wr, #diff-label { display: none !important; }
+  .meta { font-size: 0.62rem; gap: 4px; }
+  .toolbar button { padding: 4px 6px !important; font-size: 0.62rem !important; }
+
+  .layout.layout-3 {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+  }
+  .side-left, .side-right {
+    display: none !important; /* declutter phone; GTO via future expand — keep table first */
+  }
+  .table-wrap {
+    order: 1;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 4px 4px 0 !important;
+    border-radius: 10px;
+  }
+  .street-progress {
+    padding: 2px !important;
+    margin: 0 0 2px !important;
+  }
+  .street-step { min-width: 0; padding: 2px 3px; flex: 1; }
+  .street-step .en { display: none; }
+  .street-step .zh { font-size: 0.58rem; }
+  .street-pipe { width: 6px; }
+
+  .table-stage {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 42vh !important;
+    max-height: 48vh;
+    padding: 4px 0 0 !important;
+    overflow: hidden !important;
+  }
+  .rail-ring {
+    left: 3% !important;
+    right: 3% !important;
+    top: 12% !important;
+    bottom: 18% !important;
+    transform: rotateX(6deg) !important;
+  }
+  .felt { border-radius: 50% / 40%; }
+
+  .seats .seat {
+    width: 72px !important;
+    z-index: 6;
+  }
+  .seat .avatar-wrap {
+    width: 42px !important;
+    height: 46px !important;
+    border-radius: 8px;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  .seat.human .avatar-wrap {
+    width: 48px !important;
+    height: 52px !important;
+  }
+  .seat-info {
+    padding: 2px 3px !important;
+    font-size: 0.55rem !important;
+    border-width: 1px !important;
+  }
+  .seat-name { font-size: 0.55rem !important; gap: 2px !important; }
+  .stack-label .stack-caption { display: none; }
+  .stack-label .stack-amt { font-size: 0.62rem !important; }
+  .bet-count-tag, .seat-chips-visual, .under-cards-bet, .street-bet-zone,
+  .pos-markers { display: none !important; }
+  .pos-float .badge { min-width: 16px !important; height: 16px !important; font-size: 0.5rem !important; }
+  .pos-float { right: -4px; top: -4px; }
+  .stack-badge { transform: translateX(-50%) scale(0.75); bottom: -4px; padding: 0 4px; }
+  .stack-badge .sb-amt { font-size: 0.58rem; }
+
+  /* Hide inline hole cards on seats — shown in hero dock (especially hero) */
+  .seat .seat-cards { display: none !important; }
+  .seat.human {
+    z-index: 9;
+  }
+  /* Keep a tiny chip/name only near bottom for hero marker */
+  .seat.human .seat-info { max-width: 70px; }
+
+  .board-area, body.theme-pro .board-area, body.theme-q .board-area {
+    top: 38% !important;
+    min-width: 0 !important;
+    padding: 4px 6px !important;
+    transform: translate(-50%, -50%) !important;
+  }
+  .card.board-card { --cw: 36px !important; --ch: 50px !important; }
+  .board-label { font-size: 0.5rem !important; letter-spacing: 0.08em !important; }
+  .pot-display, body.theme-pro .pot-display {
+    top: 62% !important;
+    transform: translate(-50%, -50%) !important;
+  }
+  .pot-chip { padding: 3px 8px !important; font-size: 0.68rem !important; }
+  .dealer-station, .dealer-station.dealer-opposite,
+  body.theme-pro .dealer-station.pro-shoe {
+    top: 0 !important;
+    transform: translate(-50%, 0) scale(0.72) !important;
+  }
+  .bet-zones { display: none !important; }
+
+  /* Hero hole cards — always clear above sticky actions */
+  .hero-hole-dock {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    position: sticky;
+    bottom: 0;
+    z-index: 40;
+    margin: 4px 0 0;
+    padding: 6px 8px;
+    background: linear-gradient(180deg, rgba(12,16,14,0.92), rgba(8,10,9,0.98));
+    border: 1px solid rgba(212,175,55,0.45);
+    border-radius: 10px 10px 0 0;
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.45);
+  }
+  .hero-hole-label {
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: var(--gold-bright);
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+  }
+  .hero-hole-cards {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .hero-hole-cards .card {
+    --cw: 54px;
+    --ch: 76px;
+    width: var(--cw);
+    height: var(--ch);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.5) !important;
+  }
+  .hero-hole-meta {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: #d5d0c4;
+    max-width: 72px;
+    line-height: 1.25;
+  }
+
+  .action-bar-dock {
+    position: sticky;
+    bottom: 0;
+    z-index: 41;
+    margin: 0 !important;
+    border-radius: 0 0 10px 10px;
+    padding: 6px 6px 8px !important;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .action-bar-dock .bet-controls {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    margin-bottom: 4px;
+  }
+  .action-bar-dock .bet-line { font-size: 0.62rem; }
+  .action-bar-dock .size-row { margin-bottom: 4px; gap: 3px; }
+  .action-bar-dock .size-chip { min-width: 36px; padding: 3px 4px; font-size: 0.58rem; }
+  .action-bar-dock .action-main {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 3px;
+  }
+  .action-bar-dock .action-main button {
+    padding: 8px 2px !important;
+    font-size: 0.62rem !important;
+  }
+  #btn-next-hand { width: 100%; margin-top: 4px; padding: 8px !important; }
+}
+
+.btn-coach-mobile { display: none; }
+@media (max-width: 720px) {
+  .btn-coach-mobile { display: inline-flex !important; }
+  body.show-coach-mobile .side-right {
+    display: block !important;
+    order: 3;
+    max-height: 32vh;
+    overflow: auto;
+    margin-bottom: 4px;
+  }
+}
+@media (max-width: 420px) {
+  .table-stage { min-height: 38vh !important; max-height: 44vh; }
+  .hero-hole-cards .card { --cw: 50px; --ch: 70px; }
+  .seats .seat { width: 64px !important; }
+  .seat .avatar-wrap { width: 36px !important; height: 40px !important; }
+  .action-bar-dock .action-main button { font-size: 0.58rem !important; padding: 7px 1px !important; }
 }

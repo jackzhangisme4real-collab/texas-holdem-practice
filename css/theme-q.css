@@ -1125,3 +1125,39 @@ body.theme-q .bet-zones { display: block; }
     grid-template-columns: 1fr !important;
   }
 }
+
+
+/* mobile portrait q */
+@media (max-width: 720px) {
+  body.theme-q .layout-3,
+  body.theme-q .layout.layout-3 {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  body.theme-q .side-left,
+  body.theme-q .side-right { display: none !important; }
+  body.theme-q .table-stage {
+    min-height: 42vh !important;
+    padding: 4px 0 0 !important;
+  }
+  body.theme-q .table-stage .rail-ring {
+    position: absolute !important;
+    margin: 0 !important;
+    left: 3% !important;
+    right: 3% !important;
+    top: 12% !important;
+    bottom: 18% !important;
+  }
+  body.theme-q .felt {
+    max-height: none !important;
+    min-height: 0 !important;
+  }
+  body.theme-q .seats.seats-outside .seat { width: 72px !important; }
+  body.theme-q .seat.human .avatar-wrap { width: 48px !important; height: 52px !important; }
+  body.theme-q .dealer-station,
+  body.theme-q .dealer-station.dealer-opposite {
+    top: 0 !important;
+    transform: translate(-50%, 0) scale(0.72) !important;
+  }
+  body.theme-q .bet-zones { display: none !important; }
+}

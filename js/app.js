@@ -280,6 +280,12 @@
     }
     render();
     if (state.showGuided) showGuided();
+    if (window.matchMedia) {
+      const mq = window.matchMedia('(max-width: 720px)');
+      const onMq = () => { if (state.table) render(); };
+      if (mq.addEventListener) mq.addEventListener('change', onMq);
+      else if (mq.addListener) mq.addListener(onMq);
+    }
   }
 
   function bindUI() {
@@ -346,6 +352,12 @@
         });
       }
     };
+    const btnCoachMob = el('btn-coach-mobile');
+    if (btnCoachMob) {
+      btnCoachMob.onclick = () => {
+        document.body.classList.toggle('show-coach-mobile');
+      };
+    }
     const btnTables = el('btn-tables');
     if (btnTables) {
       btnTables.onclick = () => {
@@ -536,23 +548,30 @@
     }
   }
 
+  function isMobilePortrait() {
+    return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 720px)').matches;
+  }
+
   /** HSP-style oval: hero bottom, dealer top-center empty, 5 others around */
   function seatPositions(n) {
-    const spots = [
-      { left: '50%', top: '90%', side: 'bottom' }, // 你
-      { left: '12%', top: '78%', side: 'left' },
-      { left: '6%', top: '42%', side: 'left' },
-      { left: '22%', top: '10%', side: 'top' },  // left of dealer
-      { left: '78%', top: '10%', side: 'top' },  // right of dealer
-      { left: '94%', top: '42%', side: 'right' }
-    ];
-    // 6th wraps near bottom-right if needed
-    if (n > 6) {
-      spots.push({ left: '88%', top: '78%', side: 'right' });
-    } else if (n === 6) {
-      // use bottom-right instead of only mid-right for balance
-      spots[5] = { left: '88%', top: '78%', side: 'right' };
-    }
+    const mobile = isMobilePortrait();
+    const spots = mobile
+      ? [
+          { left: '50%', top: '86%', side: 'bottom' },
+          { left: '10%', top: '72%', side: 'left' },
+          { left: '8%', top: '38%', side: 'left' },
+          { left: '24%', top: '12%', side: 'top' },
+          { left: '76%', top: '12%', side: 'top' },
+          { left: '90%', top: '72%', side: 'right' }
+        ]
+      : [
+          { left: '50%', top: '90%', side: 'bottom' },
+          { left: '12%', top: '78%', side: 'left' },
+          { left: '6%', top: '42%', side: 'left' },
+          { left: '22%', top: '10%', side: 'top' },
+          { left: '78%', top: '10%', side: 'top' },
+          { left: '88%', top: '78%', side: 'right' }
+        ];
     return spots.slice(0, n);
   }
 
@@ -1268,6 +1287,50 @@
     }
   }
 
+  function renderHeroDock() {
+    const cardsEl = el('hero-hole-cards');
+    const metaEl = el('hero-hole-meta');
+    const dock = el('hero-hole-dock');
+    if (!cardsEl || !dock) return;
+    const t = state.table;
+    if (!t) {
+      cardsEl.innerHTML = '';
+      if (metaEl) metaEl.textContent = '';
+      return;
+    }
+    const hi = humanIndex();
+    const human = t.players[hi];
+    if (!human || !human.hole || human.hole.length < 2) {
+      cardsEl.innerHTML = '<div class="card slot board-card"></div><div class="card slot board-card"></div>';
+      if (metaEl) metaEl.textContent = '等待发牌';
+      return;
+    }
+    if (human.folded) {
+      cardsEl.innerHTML = '<div class="folded-tag">FOLD</div>';
+      if (metaEl) metaEl.textContent = '本手已弃';
+      return;
+    }
+    const peeked = !!state.holePeeked[human.id];
+    const showdownFace =
+      t.handOver && t.showdownResults && !t.showdownResults.foldWin && !human.folded;
+    const show = peeked || showdownFace;
+    const landed = state.dealReveal[human.id] || 0;
+    const revealed = state.dealing ? landed : (landed || human.hole.length);
+    let html = '';
+    if (revealed >= 1) {
+      html += renderCard(human.hole[0], !show, { reveal: false, win: false });
+    }
+    if (revealed >= 2) {
+      html += renderCard(human.hole[1], !show, { reveal: false, win: false });
+    }
+    if (!html) html = '<div class="card slot board-card"></div><div class="card slot board-card"></div>';
+    cardsEl.innerHTML = html;
+    if (metaEl) {
+      const key = Ranges.holeKey ? Ranges.holeKey(human.hole) : '';
+      metaEl.textContent = (show ? (key || '手牌') : '背面') + ' · STACK ' + human.chips;
+    }
+  }
+
   function renderRange() {
     const box = el('range-box');
     if (!state.settings.showRange) {
@@ -1510,6 +1573,7 @@
     }
 
     renderCoach();
+    renderHeroDock();
     renderRange();
     renderStats();
 
