@@ -15,6 +15,7 @@
   const Banter = PokerBanter;
   const Avatars = PokerAvatars;
   const Persist = PokerPersist;
+  const Coach = PokerCoach;
 
   const state = {
     table: null,
@@ -1235,6 +1236,36 @@
     el('session-wr').textContent = wr;
   }
 
+  function renderCoach() {
+    const box = el('coach-assist');
+    if (!box || !Coach) return;
+    const t = state.table;
+    if (!t) {
+      box.innerHTML = '<p class="coach-muted">等待开桌…</p>';
+      return;
+    }
+    const hi = humanIndex();
+    const human = t.players[hi];
+    if (!human || !human.hole || human.hole.length < 2) {
+      box.innerHTML = '<p class="coach-muted">发到你的底牌后，这里会给出位置、范围与胜率估算。</p>';
+      return;
+    }
+    if (human.folded) {
+      box.innerHTML = '<p class="coach-muted">本手已弃牌。下一手发牌后会刷新 GTO 助手。</p>';
+      return;
+    }
+    try {
+      const report = Coach.analyze(t, hi, { boardRevealed: state.boardRevealed });
+      box.innerHTML = report.html || '';
+      if (report.title && el('tip-title') && (!state.tipPanel || state.tipPanel._coachTitle !== false)) {
+        // keep street tip title if set; still label assist
+        if (!state.tipPanel) el('tip-title').textContent = report.title;
+      }
+    } catch (err) {
+      box.innerHTML = '<p class="coach-muted">助手暂时无法计算。</p>';
+    }
+  }
+
   function renderRange() {
     const box = el('range-box');
     if (!state.settings.showRange) {
@@ -1469,8 +1500,11 @@
     if (state.tipPanel) {
       el('tip-title').textContent = state.tipPanel.title;
       el('tip-body').textContent = state.tipPanel.body;
+    } else {
+      el('tip-title').textContent = 'GTO 练手助手';
     }
 
+    renderCoach();
     renderRange();
     renderStats();
 

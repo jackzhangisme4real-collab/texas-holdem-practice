@@ -115,8 +115,12 @@
 
       <aside class="side side-right">
         <div class="panel tip-panel">
-          <h2 id="tip-title">提示</h2>
-          <div class="tip-body" id="tip-body">开局后这里会穿插简短教学。</div>
+          <h2 id="tip-title">GTO 练手助手</h2>
+          <div class="coach-assist" id="coach-assist">
+            <p class="coach-muted">拿到底牌后，这里会显示：位置优劣、起手范围语境、胜率估算与轻量 GTO 倾向（离线近似，非求解器）。</p>
+          </div>
+          <div class="tip-divider"></div>
+          <div class="tip-body" id="tip-body">街道与手后短提示会显示在这里。</div>
         </div>
 
         <div class="panel action-bar" id="action-bar">
@@ -275,6 +279,7 @@
   <script src="js/banter.js"></script>
   <script src="js/avatars.js"></script>
   <script src="js/ranges.js"></script>
+  <script src="js/coach.js"></script>
   <script src="js/persist.js"></script>
   <script src="js/app.js"></script>
 </body>
