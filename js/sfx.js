@@ -99,12 +99,23 @@
   let bgmWanted = true;
   let bgmNodes = null;
   let bgmTimer = null;
+  let bgmAudio = null;
+  let bgmUsingFile = false;
+  const BGM_SRC = 'assets/audio/bgm.mp3';
+  const BGM_VOLUME = 0.22;
 
   function stopBgmInternal() {
     if (bgmTimer) {
       clearInterval(bgmTimer);
       bgmTimer = null;
     }
+    if (bgmAudio) {
+      try {
+        bgmAudio.pause();
+        bgmAudio.currentTime = 0;
+      } catch (e0) {}
+    }
+    bgmUsingFile = false;
     if (bgmNodes) {
       try {
         bgmNodes.forEach(function (n) {
@@ -116,11 +127,9 @@
     }
   }
 
-  function startBgmInternal() {
-    if (!enabled || !bgmWanted) return;
+  function startBgmPadFallback() {
     const c = ac();
     if (!c) return;
-    stopBgmInternal();
     // Soft felt-room pad: two detuned sines through slow filter, very quiet
     const master = c.createGain();
     master.gain.value = 0.028;
@@ -146,7 +155,6 @@
     voice(110, 'sine', 0.55);
     voice(164.5, 'sine', 0.32);
     voice(220.5, 'triangle', 0.12);
-    // gentle filter breathe
     const now = c.currentTime;
     filter.frequency.setValueAtTime(380, now);
     try {
@@ -164,6 +172,55 @@
       } catch (e) {}
     }, 8000);
     bgmNodes = nodes;
+    bgmUsingFile = false;
+  }
+
+  function ensureBgmAudio() {
+    if (bgmAudio) return bgmAudio;
+    try {
+      const a = new Audio(BGM_SRC);
+      a.preload = 'auto';
+      a.loop = true;
+      a.volume = BGM_VOLUME;
+      a.addEventListener('error', function () {
+        if (!enabled || !bgmWanted) return;
+        try { a.pause(); } catch (e) {}
+        bgmUsingFile = false;
+        if (!bgmNodes) startBgmPadFallback();
+      });
+      bgmAudio = a;
+      return a;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function startBgmInternal() {
+    if (!enabled || !bgmWanted) return;
+    stopBgmInternal();
+    ac(); // unlock AudioContext for SFX; BGM file uses HTMLAudio
+    const a = ensureBgmAudio();
+    if (a) {
+      try {
+        a.loop = true;
+        a.volume = BGM_VOLUME;
+        a.currentTime = 0;
+        const p = a.play();
+        bgmUsingFile = true;
+        if (p && p.then) {
+          p.then(function () {
+            bgmUsingFile = true;
+          }).catch(function () {
+            bgmUsingFile = false;
+            startBgmPadFallback();
+          });
+        }
+        return;
+      } catch (e) {
+        bgmUsingFile = false;
+      }
+    }
+    startBgmPadFallback();
   }
 
   const SFX = {
@@ -191,6 +248,7 @@
       ['deal', 'flip', 'chip', 'fold', 'win', 'check'].forEach(function (n) {
         load(n);
       });
+      ensureBgmAudio();
     },
     deal() {
       play('deal', function () {
