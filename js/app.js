@@ -685,23 +685,23 @@
   /** HSP-style oval: hero bottom, dealer top-center empty, 5 others around */
   function seatPositions(n) {
     const mobile = isMobilePortrait();
-    // Top seats kept lower so avatar faces clear the stage/UI edge
+    // Hero kept above action dock; side seats clustered near rail
     const spots = mobile
       ? [
-          { left: '50%', top: '86%', side: 'bottom' },
-          { left: '10%', top: '70%', side: 'left' },
+          { left: '50%', top: '82%', side: 'bottom' },
+          { left: '10%', top: '68%', side: 'left' },
           { left: '8%', top: '40%', side: 'left' },
           { left: '24%', top: '20%', side: 'top' },
           { left: '76%', top: '20%', side: 'top' },
-          { left: '90%', top: '70%', side: 'right' }
+          { left: '90%', top: '68%', side: 'right' }
         ]
       : [
-          { left: '50%', top: '90%', side: 'bottom' },
-          { left: '12%', top: '76%', side: 'left' },
-          { left: '7%', top: '44%', side: 'left' },
-          { left: '22%', top: '18%', side: 'top' },
-          { left: '78%', top: '18%', side: 'top' },
-          { left: '88%', top: '76%', side: 'right' }
+          { left: '50%', top: '80%', side: 'bottom' },
+          { left: '11%', top: '72%', side: 'left' },
+          { left: '7%', top: '42%', side: 'left' },
+          { left: '22%', top: '17%', side: 'top' },
+          { left: '78%', top: '17%', side: 'top' },
+          { left: '89%', top: '72%', side: 'right' }
         ];
     return spots.slice(0, n);
   }
@@ -1704,40 +1704,30 @@
         lineageHtml = '<span class="lineage-badge ' + lineageBadgeClass(badgeText) + '">' + escapeHtml(badgeText) + '</span>';
       }
 
-      const stackHtml = Chips.renderStackColumns(Math.max(0, p.chips), { maxCols: 4, maxH: 9, compact: !p.isHuman });
       const streetAmt = p.bet || 0;
       const seatCap = Lineage.actionCaption
         ? Lineage.actionCaption(bp, streetAmt)
         : streetAmt > 0
           ? 'In ' + streetAmt
           : '';
-      const betChipHtml =
-        '<div class="street-bet-zone' + (streetAmt > 0 ? ' has-bet' : '') + '">' +
-        '<div class="street-bet-caption">本街</div>' +
-        (streetAmt > 0
-          ? Chips.renderStackColumns(streetAmt, { maxCols: 3, maxH: 7, compact: true }) +
-            '<div class="street-bet-amt">' + escapeHtml(seatCap || ('In ' + streetAmt)) + '</div>'
-          : (seatCap
-              ? '<div class="street-bet-amt">' + escapeHtml(seatCap) + '</div>'
-              : '<div class="street-bet-amt empty">—</div>')) +
-        '</div>';
-
-      const underCardsBet =
-        streetAmt > 0
-          ? '<div class="under-cards-bet">' +
-            Chips.renderStackColumns(streetAmt, { maxCols: 3, maxH: 5, compact: true }) +
-            '<span class="ucb-amt">' + streetAmt + '</span></div>'
-          : '';
 
       const exitTag = p.folded || isOut ? '<div class="exit-tag">' + (isOut && !p.folded ? '出局' : '退场') + '</div>' : '';
       const putTag =
         bp.putCount > 0
-          ? '<div class="bet-count-tag">本手下注 ×' + bp.putCount + '</div>'
-          : '<div class="bet-count-tag muted">本手下注 ×0</div>';
+          ? '<div class="bet-count-tag">本手 ×' + bp.putCount + '</div>'
+          : '';
 
       const stackBadge =
         '<div class="stack-badge" title="剩余筹码">' +
         '<span class="sb-cap">剩余</span><span class="sb-amt">' + p.chips + '</span></div>';
+
+      // Compact street bet float toward felt (not between avatar and info)
+      const betFloat =
+        streetAmt > 0
+          ? '<div class="seat-bet-float" title="本街投入">' +
+            Chips.renderStackColumns(streetAmt, { maxCols: 3, maxH: 5, compact: true }) +
+            '<span class="sbf-amt">' + escapeHtml(seatCap || String(streetAmt)) + '</span></div>'
+          : '';
 
       html +=
         '<div class="seat' +
@@ -1750,16 +1740,16 @@
         ' side-' + (pos[vi].side || 'in') +
         '" data-seat="' + pi + '" style="left:' + pos[vi].left + ';top:' + pos[vi].top + '">' +
         exitTag +
+        '<div class="seat-cluster">' +
         '<div class="avatar-wrap">' + Avatars.svgFor(p, pi, state.settings.theme) + posFloat + stackBadge + '</div>' +
-        betChipHtml +
-        '<div class="seat-cards">' + cardsHtml + '</div>' +
-        underCardsBet +
-        '<div class="seat-chips-visual" title="剩余筹码">' + stackHtml + '</div>' +
         '<div class="seat-info">' +
-        '<div class="seat-name">' + escapeHtml(p.name) + badges.join('') + lineageHtml + '</div>' + posHtml +
-        '<div class="stack-label"><span class="stack-caption">剩余 STACK</span><span class="stack-amt">' + p.chips + '</span></div>' +
+        '<div class="seat-name">' + escapeHtml(p.name) + badges.join('') + lineageHtml + '</div>' +
+        '<div class="stack-label"><span class="stack-caption">STACK</span><span class="stack-amt">' + p.chips + '</span></div>' +
         putTag +
-        '</div></div>';
+        '</div></div>' +
+        betFloat +
+        '<div class="seat-cards">' + cardsHtml + '</div>' +
+        '</div>';
     }
     seats.innerHTML = html;
 
