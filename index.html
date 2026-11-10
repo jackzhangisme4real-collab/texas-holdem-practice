@@ -68,6 +68,13 @@
       </aside>
 
       <section class="table-wrap">
+        <div class="lounge-backdrop" aria-hidden="true">
+          <div class="lounge-sky"></div>
+          <div class="lounge-skyline"></div>
+          <div class="lounge-neon"></div>
+          <div class="lounge-haze"></div>
+          <div class="lounge-spot"></div>
+        </div>
         <div class="street-progress" id="street-progress" aria-label="本手街道进度">
           <div class="street-step" data-s="preflop"><span class="zh">翻前</span><span class="en">Preflop</span></div>
           <div class="street-pipe"></div>
@@ -92,13 +99,18 @@
               </div>
               <div class="bet-zones" id="bet-zones" aria-label="各座位下注区"></div>
               <div class="board-area" id="board-area">
+                <div class="pot-display" id="pot-display" title="所有玩家本手已投入底池合计">
+                  <div class="pot-pile-wrap" id="pot-pile-wrap"></div>
+                  <div class="pot-chip">
+                    <span class="chip-ico" aria-hidden="true"></span>
+                    <span class="pot-label">底池</span>
+                    <span class="pot-en">POT</span>
+                    <span id="pot-amount">0</span>
+                  </div>
+                  <div class="street-tag" id="street-tag">PREFLOP</div>
+                </div>
                 <div class="board-label">公共牌 · COMMUNITY <span id="board-street-tag">翻前</span></div>
                 <div class="board" id="board" aria-label="公共牌"></div>
-              </div>
-              <div class="pot-display" id="pot-display">
-                <div class="pot-pile-wrap" id="pot-pile-wrap"></div>
-                <div class="pot-chip"><span class="chip-ico" aria-hidden="true"></span>POT <span id="pot-amount">0</span></div>
-                <div class="street-tag" id="street-tag">PREFLOP</div>
               </div>
             </div>
           </div>
