@@ -39,6 +39,9 @@
       tableId: 'micro'
     },
     layoutLock: 'auto',
+    focusMode: true,
+    lastHand: null,
+    eqCache: { key: '', val: null },
     progressReady: false,
     coachTab: 'pos',
     dealing: false,
@@ -269,7 +272,13 @@
         state.layoutLock = savedLayout;
       }
     } catch (e) {}
+    try {
+      const savedFocus = localStorage.getItem('th_practice_focus_v1');
+      if (savedFocus === '0') state.focusMode = false;
+      else if (savedFocus === '1') state.focusMode = true;
+    } catch (e) {}
     applyLayoutMode();
+    applyFocusMode();
     const table = Persist.tableById(state.settings.tableId);
     const tl = el('table-label');
     if (tl) tl.textContent = table.name;
@@ -428,6 +437,8 @@
     if (tq) tq.onclick = () => setTheme('q');
     const rot = el('btn-rotate-layout');
     if (rot) rot.onclick = () => { SFX.click && SFX.click(); toggleLayoutLock(); };
+    bindFocusAndPanels();
+    bindReplay();
 
     el('btn-fold').onclick = () => { SFX.unlock(); SFX.click(); humanAct({ type: 'fold' }); };
     el('btn-check').onclick = () => { SFX.click(); humanAct({ type: 'check' }); };
@@ -470,7 +481,8 @@
     const btnCoachMob = el('btn-coach-mobile');
     if (btnCoachMob) {
       btnCoachMob.onclick = () => {
-        document.body.classList.toggle('show-coach-mobile');
+        SFX.click && SFX.click();
+        toggleSidePanel('coach');
       };
     }
     bindAskDock();
@@ -736,6 +748,194 @@
     setLayoutLock(isLandscapeLayout() ? 'portrait' : 'landscape');
   }
 
+  function applyFocusMode() {
+    document.body.classList.toggle('focus-mode', !!state.focusMode);
+    const btn = el('btn-focus-mode');
+    if (btn) {
+      btn.textContent = state.focusMode ? '🎯 专注' : '🗂️ 面板';
+      btn.title = state.focusMode
+        ? '当前为专注模式（牌桌优先）。点击展开左右解说/复盘面板。'
+        : '当前显示左右面板。点击切回专注模式。';
+      btn.setAttribute('aria-pressed', state.focusMode ? 'true' : 'false');
+    }
+    try { localStorage.setItem('th_practice_focus_v1', state.focusMode ? '1' : '0'); } catch (e) {}
+    // Switching modes starts with a clean table; tabs reopen panels on demand.
+    setSidePanel('log', false);
+    setSidePanel('coach', false);
+  }
+
+  function setFocusMode(on) {
+    state.focusMode = !!on;
+    applyFocusMode();
+    if (state.table) render();
+  }
+
+  function isNarrowChrome() {
+    return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 1100px)').matches;
+  }
+
+  function syncPanelChrome() {
+    const logOpen = document.body.classList.contains('panel-log-open');
+    const coachOpen = document.body.classList.contains('panel-coach-open');
+    const logTab = el('btn-panel-log');
+    const coachTab = el('btn-panel-coach');
+    if (logTab) logTab.setAttribute('aria-expanded', logOpen ? 'true' : 'false');
+    if (coachTab) coachTab.setAttribute('aria-expanded', coachOpen ? 'true' : 'false');
+    const backdrop = el('panel-backdrop');
+    const any = logOpen || coachOpen;
+    if (backdrop) {
+      backdrop.hidden = !any;
+      backdrop.classList.toggle('show', any);
+    }
+    document.body.classList.toggle('show-coach-mobile', coachOpen);
+  }
+
+  function setSidePanel(which, open) {
+    const logCls = 'panel-log-open';
+    const coachCls = 'panel-coach-open';
+    if (which === 'log') {
+      document.body.classList.toggle(logCls, !!open);
+      if (open && isNarrowChrome()) document.body.classList.remove(coachCls);
+    } else if (which === 'coach') {
+      document.body.classList.toggle(coachCls, !!open);
+      if (open && isNarrowChrome()) document.body.classList.remove(logCls);
+    }
+    syncPanelChrome();
+  }
+
+  function toggleSidePanel(which) {
+    const open = which === 'log'
+      ? !document.body.classList.contains('panel-log-open')
+      : !document.body.classList.contains('panel-coach-open');
+    setSidePanel(which, open);
+  }
+
+  function closeSidePanels() {
+    setSidePanel('log', false);
+    setSidePanel('coach', false);
+  }
+
+  function bindFocusAndPanels() {
+    const focusBtn = el('btn-focus-mode');
+    if (focusBtn) {
+      focusBtn.onclick = () => {
+        SFX.click && SFX.click();
+        setFocusMode(!state.focusMode);
+      };
+    }
+    const logTab = el('btn-panel-log');
+    if (logTab) logTab.onclick = () => { SFX.click && SFX.click(); toggleSidePanel('log'); };
+    const coachTab = el('btn-panel-coach');
+    if (coachTab) coachTab.onclick = () => { SFX.click && SFX.click(); toggleSidePanel('coach'); };
+    const closeLog = el('btn-close-log');
+    if (closeLog) closeLog.onclick = () => { SFX.click && SFX.click(); setSidePanel('log', false); };
+    const closeCoach = el('btn-close-coach');
+    if (closeCoach) closeCoach.onclick = () => { SFX.click && SFX.click(); setSidePanel('coach', false); };
+    const backdrop = el('panel-backdrop');
+    if (backdrop) backdrop.onclick = () => closeSidePanels();
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape') closeSidePanels();
+    });
+  }
+
+  function bindReplay() {
+    const open = () => {
+      if (!state.lastHand) {
+        flashStatus('还没有可复盘的上一手');
+        return;
+      }
+      SFX.click && SFX.click();
+      fillReplayModal();
+      toggleModal('modal-replay', true);
+    };
+    const a = el('btn-replay');
+    const b = el('btn-replay-mini');
+    if (a) a.onclick = open;
+    if (b) b.onclick = open;
+  }
+
+  function snapshotCard(c) {
+    if (!c) return null;
+    return { id: c.id, label: c.label, symbol: c.symbol, color: c.color, suit: c.suit };
+  }
+
+  function snapshotLastHand() {
+    const t = state.table;
+    if (!t) return;
+    const hi = humanIndex();
+    const human = hi >= 0 ? t.players[hi] : null;
+    const lineage = Lineage.analyze(t);
+    const winners = (t.winners || []).map((w) => {
+      const p = t.players.find((x) => x.id === w.playerId);
+      return { name: p ? p.name : '—', amount: w.amount, desc: w.desc || '', isHero: p && p.isHuman };
+    });
+    let status = '';
+    if (t.showdownResults && t.showdownResults.foldWin) {
+      status = (t.showdownResults.winnerName || '') + ' 未摊牌赢得彩池';
+    } else if (winners.length) {
+      status = winners.map((w) => w.name + ' +' + w.amount + (w.desc ? '（' + w.desc + '）' : '')).join('　');
+    } else {
+      status = '本手结束';
+    }
+    state.lastHand = {
+      n: t.handNumber,
+      pot: t.pot,
+      street: t.street,
+      status: status,
+      community: (t.community || []).map(snapshotCard),
+      heroHole: human && human.hole ? human.hole.map(snapshotCard) : [],
+      heroFolded: !!(human && human.folded),
+      evaluations: (t.showdownResults && t.showdownResults.evaluations
+        ? t.showdownResults.evaluations.map((e) => ({
+            name: e.name,
+            desc: e.desc,
+            hole: (e.hole || []).map(snapshotCard)
+          }))
+        : []),
+      foldWin: !!(t.showdownResults && t.showdownResults.foldWin),
+      winners: winners,
+      timeline: (lineage.timeline || []).map((r) => ({
+        label: r.label, name: r.name, detail: r.detail || ''
+      }))
+    };
+    const btn = el('btn-replay');
+    if (btn) btn.hidden = false;
+  }
+
+  function fillReplayModal() {
+    const h = state.lastHand;
+    const title = el('replay-title');
+    const body = el('replay-body');
+    if (!h || !body) return;
+    if (title) title.textContent = '上一手复盘 · 第 ' + h.n + ' 手';
+    const cardsHtml = (arr, cls) =>
+      (arr || []).filter(Boolean).map((c) => renderCard(c, false, { board: !!cls })).join('') ||
+      '<span class="muted">—</span>';
+    const evHtml = (h.evaluations || []).map((e) =>
+      '<div class="replay-ev"><strong>' + escapeHtml(e.name) + '</strong> ' +
+      (e.hole || []).map((c) => escapeHtml((c.label || '') + (c.symbol || ''))).join(' ') +
+      (e.desc ? ' → ' + escapeHtml(e.desc) : '') + '</div>'
+    ).join('');
+    const logHtml = (h.timeline || []).map((r) =>
+      '<div class="action-log-row"><span class="lab">' + escapeHtml(r.label) +
+      '</span><span class="who">' + escapeHtml(r.name) +
+      '</span><span class="det">' + escapeHtml(r.detail || '') + '</span></div>'
+    ).join('') || '<div class="action-log-row"><span class="det">无行动记录</span></div>';
+    const winHtml = (h.winners || []).map((w) =>
+      escapeHtml(w.name) + ' +' + w.amount + (w.desc ? '（' + escapeHtml(w.desc) + '）' : '')
+    ).join('　');
+    body.innerHTML =
+      '<div class="replay-status">' + escapeHtml(h.status) + '</div>' +
+      '<div class="replay-row"><span class="replay-k">你的手牌</span><div class="replay-cards">' +
+      cardsHtml(h.heroHole) + (h.heroFolded ? '<span class="fold-review-badge">FOLD</span>' : '') +
+      '</div></div>' +
+      '<div class="replay-row"><span class="replay-k">公共牌</span><div class="replay-cards">' +
+      cardsHtml(h.community, true) + '</div></div>' +
+      (evHtml ? '<div class="replay-block"><div class="replay-k">摊牌</div>' + evHtml + '</div>' : '') +
+      (winHtml ? '<div class="replay-block"><div class="replay-k">底池</div><div>' + winHtml + '</div></div>' : '') +
+      '<div class="replay-block"><div class="replay-k">行动日志</div><div class="action-log replay-log">' + logHtml + '</div></div>';
+  }
+
   /** HSP-style oval: hero bottom, dealer top-center empty, 5 others around.
    *  Keep seats inside ~14–86% so translate(-50%,-50%) never clips off-stage. */
   function seatPositions(n) {
@@ -840,6 +1040,12 @@
     state.boardDealt = 0;
     state.boardFlipping = false;
     state.lastFlipped = -1;
+    if (typeof clearStreetRevealFx === 'function') clearStreetRevealFx();
+    const sdBanner = el('showdown-banner');
+    if (sdBanner) {
+      sdBanner.classList.remove('show');
+      sdBanner.setAttribute('aria-hidden', 'true');
+    }
   }
 
   function streetMeta(street) {
@@ -876,6 +1082,104 @@
     if (bst) bst.textContent = meta.zh + (meta.en ? ' / ' + meta.en : '');
   }
 
+  function clearStreetRevealFx() {
+    const banner = el('street-banner');
+    if (banner) {
+      banner.classList.remove('show');
+      banner.setAttribute('aria-hidden', 'true');
+    }
+    const felt = el('felt');
+    const boardArea = el('board-area');
+    const stage = el('table-stage');
+    if (felt) felt.classList.remove('street-lit');
+    if (boardArea) boardArea.classList.remove('is-revealing');
+    if (stage) stage.classList.remove('street-lit');
+  }
+
+  function announceStreet(street) {
+    if (!street || street === 'preflop') return;
+    const banner = el('street-banner');
+    const meta = streetMeta(street);
+    const felt = el('felt');
+    const boardArea = el('board-area');
+    const stage = el('table-stage');
+    if (banner) {
+      banner.textContent = meta.zh + (meta.en ? '  ·  ' + meta.en.toUpperCase() : '');
+      banner.classList.remove('show');
+      void banner.offsetWidth;
+      banner.classList.add('show');
+      banner.setAttribute('aria-hidden', 'false');
+    }
+    if (felt) felt.classList.add('street-lit');
+    if (boardArea) boardArea.classList.add('is-revealing');
+    if (stage) stage.classList.add('street-lit');
+    setTimeout(() => {
+      if (banner) {
+        banner.classList.remove('show');
+        banner.setAttribute('aria-hidden', 'true');
+      }
+    }, 1500);
+  }
+
+  function showdownHeadline() {
+    const t = state.table;
+    if (!t || !t.handOver) return null;
+    if (t.showdownResults && t.showdownResults.foldWin) {
+      return {
+        title: (t.showdownResults.winnerName || '赢家') + ' 未摊牌收池',
+        sub: '对手弃牌 · 底池进入赢家'
+      };
+    }
+    const winners = t.winners || [];
+    if (!winners.length) return { title: '本手结束', sub: '' };
+    const first = winners[0];
+    const p = t.players.find((x) => x.id === first.playerId);
+    const desc = first.desc || '摊牌';
+    const title = desc + (p ? '  ·  ' + p.name : '');
+    const sub = winners.map((w) => {
+      const n = t.players.find((x) => x.id === w.playerId);
+      return (n ? n.name : '') + ' +' + w.amount;
+    }).join('　');
+    return { title: title, sub: sub };
+  }
+
+  function playShowdownCeremony() {
+    const head = showdownHeadline();
+    const banner = el('showdown-banner');
+    const titleEl = el('showdown-banner-title');
+    const subEl = el('showdown-banner-sub');
+    if (banner && head) {
+      if (titleEl) titleEl.textContent = head.title;
+      if (subEl) subEl.textContent = head.sub || '';
+      banner.classList.remove('show');
+      void banner.offsetWidth;
+      banner.classList.add('show');
+      banner.setAttribute('aria-hidden', 'false');
+      setTimeout(() => {
+        banner.classList.remove('show');
+        banner.setAttribute('aria-hidden', 'true');
+      }, 2800);
+    }
+    const t = state.table;
+    if (!t) return;
+    const potEl = el('pot-display');
+    const potChip = potEl ? potEl.querySelector('.pot-chip') : null;
+    const from = potChip || potEl;
+    setTimeout(() => {
+      (t.winners || []).forEach((w, i) => {
+        const idx = t.players.findIndex((p) => p.id === w.playerId);
+        if (idx < 0) return;
+        const seat = document.querySelector('.seat[data-seat="' + idx + '"]');
+        if (!seat || !from || !Chips.flyChips) return;
+        setTimeout(() => {
+          Chips.flyChips(from, seat, 'green', 5);
+          seat.classList.add('pot-collect');
+          setTimeout(() => seat.classList.remove('pot-collect'), 900);
+        }, i * 160);
+      });
+    }, 720);
+  }
+
   /** Community: deal face-down then flip one-by-one up to table.community.length */
   function runBoardFlip(done) {
     const t = state.table;
@@ -887,6 +1191,8 @@
     state.boardFlipping = true;
     state.busy = true;
     state.boardDealt = target;
+    const freshly = target === 3 ? 'flop' : target === 4 ? 'turn' : target === 5 ? 'river' : (t.street || '');
+    announceStreet(freshly);
     // show remaining as backs first
     render();
     function flipOne() {
@@ -895,6 +1201,7 @@
         state.boardFlipping = false;
         state.busy = false;
         state.lastFlipped = -1;
+        clearStreetRevealFx();
         render();
         if (done) done();
         return;
@@ -904,10 +1211,12 @@
       if (SFX.flip) SFX.flip();
       else SFX.deal();
       render();
-      setTimeout(flipOne, 780);
+      const gap = target === 3 && state.boardRevealed <= 3 ? 820 : 760;
+      setTimeout(flipOne, gap);
     }
-    // short pause so backs are visible
-    setTimeout(flipOne, 600);
+    // pause + table light so the street feels like an event
+    const firstPause = freshly === 'flop' ? 980 : freshly === 'turn' || freshly === 'river' ? 820 : 640;
+    setTimeout(flipOne, firstPause);
   }
 
   /** Card-by-card deal: fly from dealer hands → land face-down; peek later */
@@ -1222,7 +1531,9 @@
           if (idx >= 0 && wl) setTimeout(() => showBanter(idx, wl), 120);
         });
         saveProgress();
+        snapshotLastHand();
         render();
+        playShowdownCeremony();
         if (isHumanBroke()) showBrokeModal();
         return;
       }
@@ -1875,6 +2186,8 @@
     const hi2 = humanIndex();
     const myTurn = !t.handOver && t.actionIndex === hi2 && !state.busy;
     actionBar.classList.toggle('disabled', !myTurn);
+    actionBar.classList.toggle('is-your-turn', !!myTurn);
+    document.body.classList.toggle('hero-to-act', !!myTurn);
 
     const legal = myTurn ? Engine.legalActions(t, hi2) : null;
     const facing = !!(legal && legal.toCall > 0);
@@ -1920,6 +2233,111 @@
         b.disabled = !(myTurn && legal && legal.allIn && b.getAttribute('data-size') === 'allin');
       });
       el('bet-hint').textContent = '';
+    }
+
+    renderDecisionStrip(t, myTurn, legal);
+    updateEquityTick();
+    const replayBtn = el('btn-replay');
+    if (replayBtn) replayBtn.hidden = !state.lastHand;
+  }
+
+  function formatPotOdds(pot, toCall) {
+    if (!toCall || toCall <= 0) return null;
+    const ratio = pot / toCall;
+    const pretty = ratio >= 10 ? String(Math.round(ratio)) : String(Math.round(ratio * 10) / 10);
+    const pct = Math.round((toCall / (pot + toCall)) * 100);
+    return { pretty: pretty, pct: pct };
+  }
+
+  function renderDecisionStrip(t, myTurn, legal) {
+    const strip = el('decision-strip');
+    const main = el('decision-strip-main');
+    const sub = el('decision-strip-sub');
+    if (!strip || !main) return;
+    const pot = t && t.pot != null ? t.pot : 0;
+    strip.hidden = false;
+    strip.classList.remove('is-turn', 'is-facing', 'is-wait', 'is-over', 'is-check');
+    let mainText = '底池 ' + pot;
+    let subText = '';
+
+    if (t && t.handOver) {
+      strip.classList.add('is-over');
+      const head = showdownHeadline();
+      mainText = head && head.title ? head.title : '本手结束';
+      subText = '底池 ' + pot + (state.lastHand ? ' · 可看上一手复盘' : '');
+    } else if (myTurn && legal && legal.toCall > 0) {
+      const toCall = legal.callAmount != null ? legal.callAmount : legal.toCall;
+      const odds = formatPotOdds(pot, toCall);
+      strip.classList.add('is-turn', 'is-facing');
+      mainText = '跟注 ' + toCall + ' · 底池 ' + pot + (odds ? ' · 约 ' + odds.pretty + ' 赔 1' : '');
+      subText = odds ? ('打平约需 ' + odds.pct + '% 胜率') : '轮到你';
+    } else if (myTurn && legal && legal.check) {
+      strip.classList.add('is-turn', 'is-check');
+      mainText = '可以过牌 · 底池 ' + pot + ' · 轮到你';
+      subText = '无人下注，过牌或主动下注';
+    } else if (myTurn) {
+      strip.classList.add('is-turn');
+      mainText = '轮到你 · 底池 ' + pot;
+      subText = '';
+    } else if (t && t.actionIndex >= 0 && t.players[t.actionIndex]) {
+      strip.classList.add('is-wait');
+      const actor = t.players[t.actionIndex];
+      mainText = '等待 ' + actor.name + ' · 底池 ' + pot;
+      subText = streetZh(t.street);
+    } else {
+      strip.classList.add('is-wait');
+      mainText = '底池 ' + pot;
+      subText = t ? streetZh(t.street) : '';
+    }
+    main.textContent = mainText;
+    if (sub) {
+      sub.textContent = subText;
+      sub.hidden = !subText;
+    }
+  }
+
+  function updateEquityTick() {
+    const tick = el('equity-tick');
+    const valEl = el('equity-tick-val');
+    if (!tick) return;
+    const t = state.table;
+    const hide = () => {
+      tick.hidden = true;
+      if (valEl) valEl.textContent = '—';
+    };
+    if (!t || !Coach || !Coach.estimateEquity) { hide(); return; }
+    const hi = humanIndex();
+    const human = hi >= 0 ? t.players[hi] : null;
+    if (!human || !human.hole || human.hole.length < 2 || !heroCardsVisible()) { hide(); return; }
+    if (human.folded || t.handOver) {
+      // keep last number visible during fold-review / showdown if we have a cache
+      if (state.eqCache && state.eqCache.val != null && !t.handOver && human.folded) {
+        tick.hidden = false;
+        tick.classList.add('is-dim');
+        if (valEl) valEl.textContent = state.eqCache.val + '%';
+        return;
+      }
+      hide();
+      return;
+    }
+    tick.classList.remove('is-dim');
+    const board = (t.community || []).slice(0, state.boardRevealed || 0);
+    const villains = t.players.filter((p) => p !== human && !p.folded && !p.satOut).length || 1;
+    const key = (human.hole.map((c) => c.id).join('')) + '|' + board.map((c) => c.id).join('') + '|' + villains;
+    if (state.eqCache && state.eqCache.key === key && state.eqCache.val != null) {
+      tick.hidden = false;
+      if (valEl) valEl.textContent = state.eqCache.val + '%';
+      return;
+    }
+    try {
+      const eq = Coach.estimateEquity(human.hole, board, Math.min(villains, 3), t.street === 'preflop' ? 160 : 140);
+      const win = eq && typeof eq.win === 'number' ? eq.win : null;
+      if (win == null) { hide(); return; }
+      state.eqCache = { key: key, val: win };
+      tick.hidden = false;
+      if (valEl) valEl.textContent = win + '%';
+    } catch (err) {
+      hide();
     }
   }
 
