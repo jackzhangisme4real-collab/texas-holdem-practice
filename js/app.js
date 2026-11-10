@@ -38,6 +38,7 @@
       theme: 'q',
       tableId: 'micro'
     },
+    layoutLock: 'auto',
     progressReady: false,
     coachTab: 'pos',
     dealing: false,
@@ -262,6 +263,13 @@
       state.guidedStep = 0;
       localStorage.setItem('th_practice_guided_v1', '1');
     }
+    try {
+      const savedLayout = localStorage.getItem('th_practice_layout_v1');
+      if (savedLayout === 'landscape' || savedLayout === 'portrait' || savedLayout === 'auto') {
+        state.layoutLock = savedLayout;
+      }
+    } catch (e) {}
+    applyLayoutMode();
     const table = Persist.tableById(state.settings.tableId);
     const tl = el('table-label');
     if (tl) tl.textContent = table.name;
@@ -285,10 +293,15 @@
     render();
     if (state.showGuided) showGuided();
     if (window.matchMedia) {
-      const mq = window.matchMedia('(max-width: 720px)');
-      const onMq = () => { if (state.table) render(); };
-      if (mq.addEventListener) mq.addEventListener('change', onMq);
-      else if (mq.addListener) mq.addListener(onMq);
+      const onLayoutChange = () => {
+        applyLayoutMode();
+        if (state.table) render();
+      };
+      ['(max-width: 720px)', '(orientation: landscape)', '(orientation: portrait)'].forEach((q) => {
+        const mq = window.matchMedia(q);
+        if (mq.addEventListener) mq.addEventListener('change', onLayoutChange);
+        else if (mq.addListener) mq.addListener(onLayoutChange);
+      });
     }
   }
 
@@ -413,6 +426,8 @@
     const tq = el('btn-theme-q');
     if (tp) tp.onclick = () => setTheme('pro');
     if (tq) tq.onclick = () => setTheme('q');
+    const rot = el('btn-rotate-layout');
+    if (rot) rot.onclick = () => { SFX.click && SFX.click(); toggleLayoutLock(); };
 
     el('btn-fold').onclick = () => { SFX.unlock(); SFX.click(); humanAct({ type: 'fold' }); };
     el('btn-check').onclick = () => { SFX.click(); humanAct({ type: 'check' }); };
@@ -678,31 +693,86 @@
     }
   }
 
-  function isMobilePortrait() {
+  function isCompactNarrow() {
     return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 720px)').matches;
   }
 
-  /** HSP-style oval: hero bottom, dealer top-center empty, 5 others around */
+  /** Portrait phone UI vs long-table landscape UI (button can lock). */
+  function isLandscapeLayout() {
+    if (state.layoutLock === 'landscape') return true;
+    if (state.layoutLock === 'portrait') return false;
+    if (typeof window === 'undefined' || !window.matchMedia) return true;
+    // Phones held sideways, or any wide viewport → long oval table
+    if (window.matchMedia('(orientation: landscape)').matches) return true;
+    return !isCompactNarrow();
+  }
+
+  /** Compact portrait phone chrome (hero dock, stacked layout). */
+  function isMobilePortrait() {
+    return isCompactNarrow() && !isLandscapeLayout();
+  }
+
+  function applyLayoutMode() {
+    const land = isLandscapeLayout();
+    document.body.classList.toggle('layout-landscape', land);
+    document.body.classList.toggle('layout-portrait', !land);
+    const btn = el('btn-rotate-layout');
+    if (btn) {
+      btn.textContent = land ? '📱 竖屏' : '🔄 横屏';
+      btn.title = land ? '切回竖屏布局（手机手牌坞）' : '切换横屏长桌（六人全显）';
+      btn.setAttribute('aria-pressed', land ? 'true' : 'false');
+    }
+  }
+
+  function setLayoutLock(mode) {
+    state.layoutLock = mode === 'landscape' || mode === 'portrait' ? mode : 'auto';
+    try { localStorage.setItem('th_practice_layout_v1', state.layoutLock); } catch (e) {}
+    applyLayoutMode();
+    if (state.table) render();
+  }
+
+  function toggleLayoutLock() {
+    // Explicit flip between portrait and landscape layouts
+    setLayoutLock(isLandscapeLayout() ? 'portrait' : 'landscape');
+  }
+
+  /** HSP-style oval: hero bottom, dealer top-center empty, 5 others around.
+   *  Keep seats inside ~14–86% so translate(-50%,-50%) never clips off-stage. */
   function seatPositions(n) {
-    const mobile = isMobilePortrait();
-    // Hero kept above action dock; side seats clustered near rail
-    const spots = mobile
-      ? [
-          { left: '50%', top: '82%', side: 'bottom' },
-          { left: '10%', top: '68%', side: 'left' },
-          { left: '8%', top: '40%', side: 'left' },
-          { left: '24%', top: '20%', side: 'top' },
-          { left: '76%', top: '20%', side: 'top' },
-          { left: '90%', top: '68%', side: 'right' }
-        ]
-      : [
-          { left: '50%', top: '80%', side: 'bottom' },
-          { left: '11%', top: '72%', side: 'left' },
-          { left: '7%', top: '42%', side: 'left' },
-          { left: '22%', top: '17%', side: 'top' },
-          { left: '78%', top: '17%', side: 'top' },
-          { left: '89%', top: '72%', side: 'right' }
-        ];
+    const land = isLandscapeLayout();
+    const compact = isMobilePortrait();
+    let spots;
+    if (compact) {
+      // Portrait phone: inward margins (fixes first-open only-3-seats clip)
+      spots = [
+        { left: '50%', top: '76%', side: 'bottom' },
+        { left: '16%', top: '62%', side: 'left' },
+        { left: '18%', top: '34%', side: 'left' },
+        { left: '34%', top: '16%', side: 'top' },
+        { left: '66%', top: '16%', side: 'top' },
+        { left: '84%', top: '62%', side: 'right' }
+      ];
+    } else if (land && isCompactNarrow()) {
+      // Forced / device landscape on phone: long oval, all six on rail
+      spots = [
+        { left: '50%', top: '84%', side: 'bottom' },
+        { left: '12%', top: '68%', side: 'left' },
+        { left: '12%', top: '32%', side: 'left' },
+        { left: '30%', top: '12%', side: 'top' },
+        { left: '70%', top: '12%', side: 'top' },
+        { left: '88%', top: '68%', side: 'right' }
+      ];
+    } else {
+      // Desktop / wide: balanced 6-max, clear of side panels
+      spots = [
+        { left: '50%', top: '82%', side: 'bottom' },
+        { left: '14%', top: '70%', side: 'left' },
+        { left: '12%', top: '38%', side: 'left' },
+        { left: '28%', top: '14%', side: 'top' },
+        { left: '72%', top: '14%', side: 'top' },
+        { left: '86%', top: '70%', side: 'right' }
+      ];
+    }
     return spots.slice(0, n);
   }
 

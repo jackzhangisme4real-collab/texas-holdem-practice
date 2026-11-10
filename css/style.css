@@ -3509,3 +3509,117 @@ body.theme-pro .seat-cluster .seat-info {
     bottom: 16% !important;
   }
 }
+
+
+/* =========================================================
+   FIX: first-open only-3-seats + portrait/landscape table modes
+   Root cause: max-width:720 .table-stage{overflow:hidden} clipped
+   seats near left/right edges after translate(-50%,-50%).
+   ========================================================= */
+
+/* Never clip seat nodes on the stage (avatar+stack hug the rail) */
+.table-stage,
+.table-wrap,
+.seats,
+.seats.seats-outside {
+  overflow: visible !important;
+}
+
+@media (max-width: 720px) {
+  /* Override earlier mobile overflow:hidden that ate side seats */
+  .table-stage {
+    overflow: visible !important;
+    max-height: none !important;
+    min-height: 46vh !important;
+    padding: 10px 6px 8px !important;
+  }
+  .rail-ring {
+    left: 6% !important;
+    right: 6% !important;
+    top: 10% !important;
+    bottom: 14% !important;
+  }
+  .seats .seat {
+    width: 76px !important;
+  }
+}
+
+/* —— Forced / device landscape: long oval, all six seats —— */
+body.layout-landscape.layout-portrait {
+  /* mutual exclusivity handled in JS; keep for safety */
+}
+
+body.layout-landscape .table-stage {
+  overflow: visible !important;
+  min-height: min(58vh, 560px) !important;
+  max-height: none !important;
+  padding: 12px 8px 10px !important;
+}
+
+body.layout-landscape .rail-ring {
+  left: 4% !important;
+  right: 4% !important;
+  top: 8% !important;
+  bottom: 12% !important;
+  border-radius: 50% / 38% !important;
+  transform: rotateX(8deg) !important;
+}
+
+body.layout-landscape .felt {
+  border-radius: 50% / 38% !important;
+}
+
+/* Narrow + landscape layout: still stacked chrome, but long table */
+@media (max-width: 720px) {
+  body.layout-landscape .layout.layout-3 {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  body.layout-landscape .side-left,
+  body.layout-landscape .side-right {
+    display: none !important;
+  }
+  body.layout-landscape .table-stage {
+    min-height: 52vh !important;
+    max-height: none !important;
+  }
+  body.layout-landscape .hero-hole-dock {
+    display: flex !important; /* keep hole dock in phone landscape */
+  }
+  body.layout-landscape .seats .seat {
+    width: 70px !important;
+  }
+  body.layout-landscape .seat .avatar-wrap {
+    width: 40px !important;
+    height: 44px !important;
+  }
+  body.layout-landscape .seat.human .avatar-wrap {
+    width: 46px !important;
+    height: 50px !important;
+  }
+  body.layout-landscape .rail-ring {
+    left: 2% !important;
+    right: 2% !important;
+    top: 6% !important;
+    bottom: 10% !important;
+  }
+}
+
+/* Portrait lock on wide screens still uses inward desktop seats via JS;
+   only tighten stage padding so top seats stay inside. */
+body.layout-portrait .table-stage {
+  overflow: visible !important;
+}
+
+#btn-rotate-layout.active,
+#btn-rotate-layout[aria-pressed="true"] {
+  border-color: rgba(212, 175, 55, 0.75);
+  color: var(--gold-bright, #f0d78c);
+}
+
+/* Ensure seat cluster itself cannot be clipped by ancestor overflow */
+.seat-cluster,
+.seat .avatar-wrap,
+.seat .seat-info {
+  overflow: visible !important;
+}
